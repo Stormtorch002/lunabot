@@ -19,15 +19,16 @@ async def start():
     await bot.wait_until_ready()
     print('Ready')
     await bot.load_extension("jishaku")
-    await bot.load_extension("tools")
+    await bot.load_extension('db')
     await bot.load_extension("ticket")
+    await bot.load_extension("eh")
+    await bot.load_extension("help")
+    await bot.load_extension("tools")
     await bot.load_extension("autoresponder")
     await bot.load_extension("bdays")
     await bot.load_extension("events")
-    await bot.load_extension("eh")
     await bot.load_extension("embeds")
-    await bot.load_extension("help")
-    await bot.load_extension('db')
+    
 
 
 @bot.command()

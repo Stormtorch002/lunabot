@@ -227,7 +227,7 @@ class TicketCog(commands.Cog, name='Tickets', description='a few sketchy admin-o
         self.bot = bot 
 
     async def cog_load(self):
-        self.bot.pool = await asqlite.create_pool('main.sqlite')
+        self.bot.pool = self.bot.db.pool
 
         for guild in data:
             archive_id = guild['archive id']
