@@ -1,0 +1,8 @@
+data.json
+events.json
+test.json 
+main.sqlite 
+config.py
+embed_editor/
+.vscode/
+__pycache__/
