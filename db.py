@@ -8,8 +8,6 @@ class DB:
 
     async def connect(self):
         self.pool = await asqlite.create_pool('main.sqlite')
-        with open('./query.sql') as f:
-            await self.execute(f.read())
 
     async def execute(self, query, *args):
         async with self.pool.acquire() as conn:
