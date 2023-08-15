@@ -190,7 +190,9 @@ class RRView3(ui.View):
     @ui.button(label='Submit', style=ButtonStyle.green, row=2)
     async def submit(self, inter, button):
         if self.role is not None:
-
+            # do modal stuff for deny msg
+        if self.seconds != 0:
+            # do modal stuff for deny msg
 
         await inter.response.delete_message()
         
