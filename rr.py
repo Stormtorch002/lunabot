@@ -158,11 +158,27 @@ class RoleDenyModal(ui.Modal, title='When user doesn\'t have a role'):
 
     def __init__(self, embed):
         self.embed = embed
-    
+        self.denymsg = None
+
     async def on_submit(self, inter):
         gg = self.embed.fields[0].split('\n\n')[0]
-        self.embed.set_field_at(0, name='Required Role')
+        self.embed.set_field_at(0, name='Required Role', value=f'{gg}\n\n**:white_check_mark: Has deny message**')
+        self.denymsg = str(self.text)
+        await inter.response.edit_message(embed=self.embed)
 
+class TimeDenyModal(ui.Modal, title='When user hasn\'t stayed long enough'):
+    text = ui.TextInput(label='Enter message here', style=TextStyle.long, default="Use {time} for the remaining time thingy (DO NOT TYPE 'in' BEFORE IT)")
+
+
+    def __init__(self, embed):
+        self.embed = embed
+        self.denymsg = None
+
+    async def on_submit(self, inter):
+        gg = self.embed.fields[1].split('\n\n')[0]
+        self.embed.set_field_at(1, name='Required Time', value=f'{gg}\n\n**:white_check_mark: Has deny message**')
+        self.denymsg = str(self.text)
+        await inter.response.edit_message(embed=self.embed)
 class RRView3(ui.View):
     def __init__(self, ctx, embed):
         self.ctx = ctx 
@@ -170,6 +186,8 @@ class RRView3(ui.View):
         self.role = None 
         self.modal = None 
         self.seconds = 0 
+        self.role_denymsg = None 
+        self.time_denymsg = None
 
     async def interaction_check(self, interaction):
         return interaction.user.id == self.ctx.author.id
@@ -190,7 +208,7 @@ class RRView3(ui.View):
     @ui.button(label='Submit', style=ButtonStyle.green, row=2)
     async def submit(self, inter, button):
         if self.role is not None:
-            # do modal stuff for deny msg
+            rdmodal = RoleDenyModal(self.embed)
         if self.seconds != 0:
             # do modal stuff for deny msg
 
