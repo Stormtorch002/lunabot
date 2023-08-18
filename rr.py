@@ -195,31 +195,36 @@ class RRView3(ui.View):
     @ui.select(cls=ui.RoleSelect)
     async def roleselect(self, inter, select):
         self.role = select.values[0]
+        self.role_denymsg = None
         self.embed.set_field_at(0, name='Required Role', value=f'{self.role.mention}\n\n**Requires deny message**')
         await inter.response.edit_message(embed=self.embed)
     
     @ui.button(label='Set time requirement', style=ButtonStyle.blurple)
     async def timebtn(self, inter, button):
         self.modal = TimeModal(self.embed)
+        self.time_denymsg = None 
         await inter.response.send_modal(self.modal)
         await self.modal.wait()
         self.seconds = self.modal.seconds 
     
     @ui.button(label='Submit', style=ButtonStyle.green, row=2)
     async def submit(self, inter, button):
-        if self.role is not None:
+        if self.role is not None and self.role_denymsg is None:
             rdmodal = RoleDenyModal(self.embed)
-        if self.seconds != 0:
-            # do modal stuff for deny msg
+            await inter.response.send_modal(rdmodal)
+            await rdmodal.wait()
+            self.role_denymsg = rdmodal.denymsg 
+        elif self.seconds != 0 and self.time_denymsg is None:
+            tdmodal = TimeDenyModal(self.embed)
+            await inter.response.send_modal(tdmodal)
+            await tdmodal.wait()
+            self.time_denymsg = tdmodal.denymsg
 
         await inter.response.delete_message()
         
         self.ready = True 
         self.stop()
-
-
 class RR(commands.Cog, name='Reaction Roles'):
-    
     def __init__(self, bot):
         self.bot = bot
     
@@ -290,7 +295,7 @@ class RR(commands.Cog, name='Reaction Roles'):
         for emoji in stuff:
             await msgout.add_reaction(emoji)
 
-        query = 'INSERT INTO rrs (channel_id, message_id, map, max_sel, req_role_id, no_role_message)'
+        query = 'INSERT INTO rrs (channel_id, message_id, map, max_sel, req_role_id, no_role_message,   )'
         
 
 

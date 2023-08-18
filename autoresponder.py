@@ -112,7 +112,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             nonlocal choice 
             if inter.user != ctx.author:
                 return await inter.response.defer()
-            await inter.response.delete_message()
+            await inter.response.edit_message(view=None)
             choice = inter.data['values'][0]
             view.stop()
 
@@ -138,7 +138,8 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             
             if inter.user != ctx.author:
                 return await inter.response.defer()
-            await inter.response.delete_message()
+            
+            await inter.response.edit_message(view=None)
             guild_ids = inter.data['values']
             view.stop()
 
