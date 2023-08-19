@@ -296,7 +296,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         col2 = col.replace('w', 'b')
 
         query = f'UPDATE ars SET {col} = ?, {col2} = ? WHERE phrase = ?'
-        await self.bot.db.execute(query, json.dumps(ids), '[]')
+        await self.bot.db.execute(query, json.dumps(ids), '[]', phrase)
          
         await view2.inter.response.edit_message(view=None, content='Edited your autoresponder!')
 
@@ -383,7 +383,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         col2 = col.replace('b', 'w')
 
         query = f'UPDATE ars SET {col} = ?, {col2} = ? WHERE phrase = ?'
-        await self.bot.db.execute(query, json.dumps(ids), '[]')
+        await self.bot.db.execute(query, json.dumps(ids), '[]', phrase)
          
         await view2.inter.response.edit_message(view=None, content='Edited your autoresponder!')
      
