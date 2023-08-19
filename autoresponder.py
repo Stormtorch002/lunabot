@@ -178,6 +178,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             for task in pending:
                 task.cancel()
 
+        embed = None 
         if view.ready:
             embed = json.dumps(view.current_embed.to_dict())
         else:
