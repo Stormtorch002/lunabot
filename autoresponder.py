@@ -24,8 +24,11 @@ class AutoResponder:
         self.wlchannels = json.loads(wlchannels) if wlchannels else []
         self.blchannels = json.loads(blchannels) if blchannels else []
         self.text = text
-        self.embed = json.loads(embed)
-    
+        if embed:
+            self.embed = json.loads(embed)
+        else:
+            self.embed = None 
+
 
 class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autoresponder stuff (admin only)"):
     def __init__(self, bot):
