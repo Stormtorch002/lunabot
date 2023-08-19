@@ -1,5 +1,6 @@
 from discord.ext import commands 
 from discord import ui
+from discord.interactions import Interaction
 from embed_editor.editor import EmbedEditor
 import discord 
 import json 
@@ -211,43 +212,217 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                     await conn.commit()
                 return await ctx.send('Successfully removed autoresponder.')
         await ctx.send('No autoresponder with that name.')
-            
-    @commands.command()
-    async def addarwl(self, ctx, objects: Greedy[Union[Member, Role, TextChannel]], *, phrase):
-        if len(objects) == 0:
-            return await ctx.send("Please provide at least one member, role, or channel before the phrase")
-        
-        async with self.bot.pool.acquire() as conn:
-            for ar in self.ars:
-                if ar.phrase == phrase.lower():
-                    embed = discord.Embed(title='Added the following to the whitelist', color=0xcab7ff)
-                    ked = []
-                    for obj in objects:
-                        if isinstance(obj, Member):
-                            if obj.id in ar.wlusers:
-                                continue 
-                            ar.wlusers.append(obj.id)
-                            query = 'UPDATE ars SET wlusers = ? WHERE phrase = ?'
-                            await conn.execute(query, (json.dumps(ar.wlusers), phrase))
-                        elif isinstance(obj, Role):
-                            if obj.id in ar.wlroles:
-                                continue 
-                            ar.wlroles.append(obj.id)
-                            query = 'UPDATE ars SET wlroles = ? WHERE phrase = ?'
-                            await conn.execute(query, (json.dumps(ar.wlroles), phrase))
-                        else:
-                            if obj.id in ar.wlchannels:
-                                continue 
-                            ar.wlchannels.append(obj.id)
-                            query = 'UPDATE ars SET wlchannels = ? WHERE phrase = ?'
-                            await conn.execute(query, (json.dumps(ar.wlchannels), phrase))
-                        ked.append(obj.mention)
-                    embed.description = '\n'.join(ked)
-                    await ctx.send(embed=embed)
 
-                    # remove blacklist
-                    return 
-        await ctx.send('No autoresponder with that name.')
+    @commands.command()
+    async def allowar(self, ctx, *, phrase):
+        phrase = phrase.lower() 
+        query = 'SELECT id FROM ars WHERE phrase = ?' 
+        val = await self.bot.db.fetchval(query)
+        if val is None:
+            return await ctx.send('No autoresponder with that phrase.')
+
+        class View(ui.View):
+
+            def __init__(self):
+                super().__init__()
+                self.ready = False 
+                self.choice = None
+                self.inter = None  
+
+            async def interaction_check(self, interaction):
+                return interaction.user == ctx.author 
+
+            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['channel', 'role', 'user']])        
+            async def allowtype(self, inter, sel):
+                self.choice = sel.values[0]
+                self.inter = inter 
+                self.ready = True 
+                self.stop() 
+        
+        view = View()
+        msg = await ctx.send('What would you like to allow?', view=view)
+        await view.wait()
+        if not view.ready:
+            await msg.delete()
+            return 
+        
+        if view.choice == 'channel':
+            c = ui.ChannelSelect
+        elif view.choice == 'role':
+            c = ui.RoleSelect
+        else:
+            c = ui.UserSelect 
+        
+        class View2(ui.View):
+
+            def __init__(self):
+                super().__init__()
+                self.ready = False 
+                self.inter = None 
+                self.choices = None 
+
+            async def interaction_check(self, interaction):
+                return interaction.user == ctx.author 
+
+            @ui.select(cls=c, max_values=None)
+            async def objselect(self, inter, sel):
+                self.ready = True 
+                self.inter = inter 
+                self.choices = sel.values 
+                self.stop() 
+
+        view2 = View2()
+        await view.inter.response.send_message('Please choose what youd like to allow:', view=view2)            
+        await view2.wait()
+        if not view2.ready:
+            return 
+        
+        for ar in self.ars:
+            if ar.phrase == phrase:
+                self.ars.remove(ar)
+                break 
+        temp = ar     
+        ids = [o.id for o in view2.choices]
+        if c is ui.ChannelSelect:
+            col = 'wlchannels'
+            temp.wlchannels = ids 
+        elif c is ui.RoleSelect:
+            col = 'wlroles' 
+            temp.wlroles = ids 
+        else:
+            col = 'wlusers'
+            temp.wluseres = ids
+        self.ars.append(temp) 
+        col2 = col.replace('w', 'b')
+
+        query = f'UPDATE ars SET {col} = ?, {col2} = ? WHERE phrase = ?'
+        await self.bot.db.execute(query, json.dumps(ids), '[]')
+         
+        await view2.inter.response.edit_message(view=None, content='Edited your autoresponder!')
+
+    @commands.command()
+    async def denyar(self, ctx, *, phrase):
+        phrase = phrase.lower() 
+        query = 'SELECT id FROM ars WHERE phrase = ?' 
+        val = await self.bot.db.fetchval(query)
+        if val is None:
+            return await ctx.send('No autoresponder with that phrase.')
+
+        class View(ui.View):
+
+            def __init__(self):
+                super().__init__()
+                self.ready = False 
+                self.choice = None
+                self.inter = None  
+
+            async def interaction_check(self, interaction):
+                return interaction.user == ctx.author 
+
+            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['channel', 'role', 'user']])        
+            async def allowtype(self, inter, sel):
+                self.choice = sel.values[0]
+                self.inter = inter 
+                self.ready = True 
+                self.stop() 
+        
+        view = View()
+        msg = await ctx.send('What would you like to allow?', view=view)
+        await view.wait()
+        if not view.ready:
+            await msg.delete()
+            return 
+        
+        if view.choice == 'channel':
+            c = ui.ChannelSelect
+        elif view.choice == 'role':
+            c = ui.RoleSelect
+        else:
+            c = ui.UserSelect 
+        
+        class View2(ui.View):
+
+            def __init__(self):
+                super().__init__()
+                self.ready = False 
+                self.inter = None 
+                self.choices = None 
+
+            async def interaction_check(self, interaction):
+                return interaction.user == ctx.author 
+
+            @ui.select(cls=c, max_values=None)
+            async def objselect(self, inter, sel):
+                self.ready = True 
+                self.inter = inter 
+                self.choices = sel.values 
+                self.stop() 
+
+        view2 = View2()
+        await view.inter.response.send_message('Please choose what youd like to deny:', view=view2)            
+        await view2.wait()
+        if not view2.ready:
+            return 
+        
+        for ar in self.ars:
+            if ar.phrase == phrase:
+                self.ars.remove(ar)
+                break 
+        temp = ar     
+        ids = [o.id for o in view2.choices]
+        if c is ui.ChannelSelect:
+            col = 'blchannels'
+            temp.blchannels = ids 
+        elif c is ui.RoleSelect:
+            col = 'blroles' 
+            temp.blroles = ids 
+        else:
+            col = 'blusers'
+            temp.bluseres = ids
+        self.ars.append(temp) 
+        col2 = col.replace('b', 'w')
+
+        query = f'UPDATE ars SET {col} = ?, {col2} = ? WHERE phrase = ?'
+        await self.bot.db.execute(query, json.dumps(ids), '[]')
+         
+        await view2.inter.response.edit_message(view=None, content='Edited your autoresponder!')
+     
+    # @commands.command()
+    # async def addarwl(self, ctx, objects: Greedy[Union[Member, Role, TextChannel]], *, phrase):
+    #     if len(objects) == 0:
+    #         return await ctx.send("Please provide at least one member, role, or channel before the phrase")
+        
+    #     async with self.bot.pool.acquire() as conn:
+    #         for ar in self.ars:
+    #             if ar.phrase == phrase.lower():
+    #                 embed = discord.Embed(title='Added the following to the whitelist', color=0xcab7ff)
+    #                 ked = []
+    #                 for obj in objects:
+    #                     if isinstance(obj, Member):
+    #                         if obj.id in ar.wlusers:
+    #                             continue 
+    #                         ar.wlusers.append(obj.id)
+    #                         query = 'UPDATE ars SET wlusers = ? WHERE phrase = ?'
+    #                         await conn.execute(query, (json.dumps(ar.wlusers), phrase))
+    #                     elif isinstance(obj, Role):
+    #                         if obj.id in ar.wlroles:
+    #                             continue 
+    #                         ar.wlroles.append(obj.id)
+    #                         query = 'UPDATE ars SET wlroles = ? WHERE phrase = ?'
+    #                         await conn.execute(query, (json.dumps(ar.wlroles), phrase))
+    #                     else:
+    #                         if obj.id in ar.wlchannels:
+    #                             continue 
+    #                         ar.wlchannels.append(obj.id)
+    #                         query = 'UPDATE ars SET wlchannels = ? WHERE phrase = ?'
+    #                         await conn.execute(query, (json.dumps(ar.wlchannels), phrase))
+    #                     ked.append(obj.mention)
+    #                 embed.description = '\n'.join(ked)
+    #                 await ctx.send(embed=embed)
+
+    #                 # remove blacklist
+    #                 return 
+    #     await ctx.send('No autoresponder with that name.')
     
     
 
