@@ -217,7 +217,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
     async def allowar(self, ctx, *, phrase):
         phrase = phrase.lower() 
         query = 'SELECT id FROM ars WHERE phrase = ?' 
-        val = await self.bot.db.fetchval(query)
+        val = await self.bot.db.fetchval(query, phrase)
         if val is None:
             return await ctx.send('No autoresponder with that phrase.')
 
@@ -304,7 +304,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
     async def denyar(self, ctx, *, phrase):
         phrase = phrase.lower() 
         query = 'SELECT id FROM ars WHERE phrase = ?' 
-        val = await self.bot.db.fetchval(query)
+        val = await self.bot.db.fetchval(query, phrase)
         if val is None:
             return await ctx.send('No autoresponder with that phrase.')
 
