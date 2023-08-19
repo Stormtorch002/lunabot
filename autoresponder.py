@@ -264,7 +264,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             async def interaction_check(self, interaction):
                 return interaction.user == ctx.author 
 
-            @ui.select(cls=c, max_values=None)
+            @ui.select(cls=c, max_values=None, channel_types=[discord.TextChannel])
             async def objselect(self, inter, sel):
                 self.ready = True 
                 self.inter = inter 
@@ -291,7 +291,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             temp.wlroles = ids 
         else:
             col = 'wlusers'
-            temp.wluseres = ids
+            temp.wlusers = ids
         self.ars.append(temp) 
         col2 = col.replace('w', 'b')
 
@@ -351,7 +351,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             async def interaction_check(self, interaction):
                 return interaction.user == ctx.author 
 
-            @ui.select(cls=c, max_values=None)
+            @ui.select(cls=c, max_values=None, channel_types=[discord.TextChannel])
             async def objselect(self, inter, sel):
                 self.ready = True 
                 self.inter = inter 
@@ -378,7 +378,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             temp.blroles = ids 
         else:
             col = 'blusers'
-            temp.bluseres = ids
+            temp.blusers = ids
         self.ars.append(temp) 
         col2 = col.replace('b', 'w')
 
