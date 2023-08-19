@@ -68,7 +68,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 continue 
             if ar.blroles and any(role in roleids for role in ar.roles):
                 continue 
-            if ar.wlchannels and msg.channel.id not in ar.wlchannel:
+            if ar.wlchannels and msg.channel.id not in ar.wlchannels:
                 continue 
             if ar.blchannels and msg.channel.id in ar.blchannels:
                 continue 
