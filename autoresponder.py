@@ -264,7 +264,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             async def interaction_check(self, interaction):
                 return interaction.user == ctx.author 
 
-            @ui.select(cls=c, max_values=None, channel_types=[discord.ChannelType.text])
+            @ui.select(cls=c, max_values=25, channel_types=[discord.ChannelType.text])
             async def objselect(self, inter, sel):
                 self.ready = True 
                 self.inter = inter 
@@ -272,7 +272,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 self.stop() 
 
         view2 = View2()
-        await view.inter.response.send_message('Please choose what youd like to allow:', view=view2)            
+        await view.inter.response.send_message(f'Please choose the {view.choice}s to deny:', view=view2) 
         await view2.wait()
         if not view2.ready:
             return 
@@ -351,7 +351,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             async def interaction_check(self, interaction):
                 return interaction.user == ctx.author 
 
-            @ui.select(cls=c, max_values=None, channel_types=[discord.ChannelType.text])
+            @ui.select(cls=c, max_values=25, channel_types=[discord.ChannelType.text])
             async def objselect(self, inter, sel):
                 self.ready = True 
                 self.inter = inter 
@@ -359,7 +359,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 self.stop() 
 
         view2 = View2()
-        await view.inter.response.send_message('Please choose what youd like to deny:', view=view2)            
+        await view.inter.response.send_message(f'Please choose the {view.choice}s to deny:', view=view2)            
         await view2.wait()
         if not view2.ready:
             return 
