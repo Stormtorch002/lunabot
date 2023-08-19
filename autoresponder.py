@@ -88,6 +88,8 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             
             if ar.embed:
                 embed = discord.Embed.from_dict(ar.embed)
+            else:
+                embed = None
             await msg.channel.send(ar.text, embed=embed)
 
     @commands.command()
