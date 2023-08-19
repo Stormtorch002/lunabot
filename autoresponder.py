@@ -272,7 +272,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 self.stop() 
 
         view2 = View2()
-        await view.inter.response.send_message(f'Please choose the {view.choice}s to deny:', view=view2) 
+        await view.inter.response.send_message(f'Please choose the {view.choice}s to allow:', view=view2) 
         await view2.wait()
         if not view2.ready:
             return 
