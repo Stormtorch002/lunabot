@@ -98,7 +98,11 @@ async def parsemap(ctx, text):
 class RRView2(ui.View):
 
     async def interaction_check(self, interaction):
-        return interaction.user.id == self.ctx.author.id
+        if interaction.user.id == self.ctx.author.id:
+            return True 
+        else:
+            await interaction.response.defer()
+            return False 
     
     def __init__(self, ctx, length):
         self.ez.add_option(label='No limit', value=-1)

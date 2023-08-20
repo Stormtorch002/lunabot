@@ -317,7 +317,11 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 self.inter = None  
 
             async def interaction_check(self, interaction):
-                return interaction.user == ctx.author 
+                if interaction.user.id == self.ctx.author.id:
+                    return True 
+                else:
+                    await interaction.response.defer()
+                    return False 
 
             @ui.select(options=[discord.SelectOption(label=gg) for gg in ['channel', 'role', 'user']])        
             async def allowtype(self, inter, sel):

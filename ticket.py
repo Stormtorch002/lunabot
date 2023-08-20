@@ -3,7 +3,6 @@ import discord
 from discord.ext import commands 
 from discord import ui 
 import time 
-import asqlite
 import asyncio 
 from datetime import timedelta, datetime
 
