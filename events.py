@@ -140,7 +140,7 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
             await self.send_embed(member, repl, 'boost')
 
     @commands.hybrid_command(name='set-event-embed')
-    @app_commands.checks.has_permissions()
+    @app_commands.default_permissions()
     async def setembed(self, ctx, event: Literal['welcome', 'goodbye', 'boost', 'birthday'], channel: discord.TextChannel, *, name: str):
         """Sets an embed for welcome/leave/boost messages."""
         async with self.bot.pool.acquire() as conn:

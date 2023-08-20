@@ -20,7 +20,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
         await ctx.send_help(ctx.command)
     
     @embed.command()
-    @app_commands.checks.has_permissions()
+    @app_commands.default_permissions()
     async def create(self, ctx, *, name):
         """Create an embed with LunaBot"""
         async with self.bot.pool.acquire() as conn:
@@ -46,7 +46,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
             await ctx.send(f'Added your embed `{name.lower()}`!')
     
     @embed.command()
-    @app_commands.checks.has_permissions()
+    @app_commands.default_permissions()
     async def edit(self, ctx, *, name):
     
         async with self.bot.pool.acquire() as conn:
@@ -72,7 +72,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
             await ctx.send(f'Edited the embed `{name.lower()}`!')
     
     @embed.command()
-    @app_commands.checks.has_permissions()
+    @app_commands.default_permissions()
     async def delete(self, ctx, *, name):
         async with self.bot.pool.acquire() as conn:
             async with conn.cursor() as cur:
@@ -99,7 +99,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
         await ctx.send(f'Deleted the embed `{name.lower()}`!')
         
     @embed.command()
-    @app_commands.checks.has_permissions()
+    @app_commands.default_permissions()
     async def show(self, ctx, *, name):
         async with self.bot.pool.acquire() as conn:
             async with conn.cursor() as cur:
@@ -115,7 +115,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
                     await ctx.send(embed=embed)
     
     @embed.command(name='list')
-    @app_commands.checks.has_permissions()
+    @app_commands.default_permissions()
     async def _list(self, ctx):
         async with self.bot.pool.acquire() as conn:
             async with conn.cursor() as cur:
