@@ -111,8 +111,8 @@ class Automessages(commands.Cog):
         # msg = await channel.send(None, embed=realembed)
         await ctx.send(f'Made your automessage! See it in {channel.mention}')
 
-        query = 'INSERT INTO ams (channel_id, interval, text, embed, lastsent) VALUES (?, ?, ?, ?, ?)'
-        await self.bot.db.execute(query, channel.id, time, text, embed, rn())
+        query = 'INSERT INTO ams (name, channel_id, interval, text, embed, lastsent) VALUES (?, ?, ?, ?, ?)'
+        await self.bot.db.execute(query, name, channel.id, time, text, embed, rn())
 
  
     @commands.hybrid_command()
