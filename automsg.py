@@ -126,7 +126,7 @@ class Automessages(commands.Cog):
             return await ctx.send('No automessage under that name.', ephemeral=True)
         task = self.tasks.pop(name)
         task.cancel()
-        query = 'DELETE FROM automsg WHERE name = ?'
+        query = 'DELETE FROM am WHERE name = ?'
         await self.bot.db.execute(query, name)
         await ctx.send('Deleted your automessage!', ephemeral=True)
 
