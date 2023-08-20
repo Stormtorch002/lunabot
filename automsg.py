@@ -37,7 +37,7 @@ class Automessages(commands.Cog):
             lastsent = row[4]
             name = row[5]
             
-            taskobj = self.bot.loop.create_task(task(channel, text, embed, interval, lastsent, name))
+            taskobj = self.bot.loop.create_task(task(channel, text, embed, interval, lastsent))
             self.tasks[name] = taskobj 
 
     async def cog_unload(self):
@@ -106,7 +106,7 @@ class Automessages(commands.Cog):
                     break 
         
         
-        taskobj = self.bot.loop.create_task(task(channel, text, embed, time, 0, name))
+        taskobj = self.bot.loop.create_task(task(channel, text, embed, time, 0))
         self.tasks[name] = taskobj 
         # msg = await channel.send(None, embed=realembed)
         await ctx.send(f'Made your automessage! See it in {channel.mention}')
