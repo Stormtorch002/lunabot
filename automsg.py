@@ -120,13 +120,13 @@ class Automessages(commands.Cog):
     @app_commands.describe(name='the name for the automessage') 
     async def removeam(self, ctx, *, name: str):
         name = name.lower() 
-        query = 'SELECT id FROM automsg WHERE name = ?'
+        query = 'SELECT id FROM ams WHERE name = ?'
         val = await self.bot.db.fetchval(query, name)
         if val is None:
             return await ctx.send('No automessage under that name.', ephemeral=True)
         task = self.tasks.pop(name)
         task.cancel()
-        query = 'DELETE FROM am WHERE name = ?'
+        query = 'DELETE FROM ams WHERE name = ?'
         await self.bot.db.execute(query, name)
         await ctx.send('Deleted your automessage!', ephemeral=True)
 
