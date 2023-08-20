@@ -45,7 +45,7 @@ class Automessages(commands.Cog):
             task.cancel() 
 
     async def cog_check(self, ctx):
-        return ctx.author.guild_permissions.administrator or ctx.author.id == self.bot.STORCH_ID
+        return ctx.author.guild_permissions.administrator or ctx.author.id == self.bot.owner_id
     
     @commands.hybrid_command()
     @app_commands.default_permissions()
