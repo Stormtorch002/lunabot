@@ -83,7 +83,7 @@ class Automessages(commands.Cog):
                 if val is None:
                     await ctx.send('No embed with that name found. Please try another name.')
                 else:
-                    embed = val 
+                    embedjson = val 
                     break 
         else:
 
@@ -94,7 +94,7 @@ class Automessages(commands.Cog):
                 embedname = resp.content.lower()
 
                 if embedname == 'skip':
-                    embed = None 
+                    embedjson = None 
                     break 
 
                 query = 'SELECT embed FROM embeds WHERE name = ?'
@@ -102,17 +102,21 @@ class Automessages(commands.Cog):
                 if val is None:
                     await ctx.send('No embed with that name found. Please try another name.')
                 else:
-                    embed = val 
+                    embedjson = val 
                     break 
         
-        
+        if embedjson is not None:
+            embed = discord.Embed.from_dict(json.loads(embedjson)) 
+        else:
+            embed = None 
+
         taskobj = self.bot.loop.create_task(task(channel, text, embed, time, 0))
         self.tasks[name] = taskobj 
         # msg = await channel.send(None, embed=realembed)
         await ctx.send(f'Made your automessage! See it in {channel.mention}')
 
         query = 'INSERT INTO ams (name, channel_id, interval, text, embed, lastsent) VALUES (?, ?, ?, ?, ?, ?)'
-        await self.bot.db.execute(query, name, channel.id, time, text, embed, rn())
+        await self.bot.db.execute(query, name, channel.id, time, text, embedjson, rn())
 
  
     @commands.hybrid_command()
