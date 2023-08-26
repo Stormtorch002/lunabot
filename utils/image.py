@@ -55,9 +55,11 @@ def generate_rank_card(level, av_file):
     b2 = BytesIO()
     f1.save(b1, 'GIF')
     f2.save(b2, 'GIF')
+    f1 = Image.open(b1)
+    f2 = Image.open(b2)
 
     out = BytesIO()
-    b1.save(out, append_images=[b2], **save_kwargs)
+    f1.save(out, append_images=[f2], **save_kwargs)
     # layer.save(out, 'png')
     out.seek(0)
     return out 
