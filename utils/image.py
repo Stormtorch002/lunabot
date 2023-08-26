@@ -24,7 +24,8 @@ def generate_rank_card(level, av_file):
         "format": "GIF",
         "save_all": True, 
         "loop": 0,
-        "duration": 1000
+        "duration": 1000,
+        "optimize": False
     }
 
     layer = Image.new(mode='RGBA', size=frame1.size, color=(0, 0, 0, 0))
