@@ -103,7 +103,7 @@ class Levels(commands.Cog):
 
         async with ctx.channel.typing():
 
-            start = time.time()
+            start = time.perf_counter()
 
             xp = self.xp_cache.get(m.id)
             if xp is None:
@@ -112,11 +112,11 @@ class Levels(commands.Cog):
             mx = xp
             current_level = get_level(mx)
             nlr = nl = None
-            avdata = await m.avatar.read()
+            avdata = await m.display_avatar.with_format('png').read()
 
             file = await self.bot.loop.run_in_executor(None, generate_rank_card, current_level, avdata)
             
-            total = time.time() - start
+            total = time.perf_counter() - start
             await ctx.send(f'Render time: `{round(total, 3)}s', file=discord.File(fp=file, filename='rank.gif'))
 
 
