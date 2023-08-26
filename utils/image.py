@@ -15,19 +15,19 @@ for i in range(9):
     im = im.resize((newx, newy))
     numbers[str(i)] = im 
 
-frames = []
-gif = Image.open('assets/rc.gif')
-for frame in ImageSequence.Iterator(gif):
-    frames.append(frame)
 
+frame1 = Image.open('assets/frame1.png')
+frame2 = Image.open('assets/frame2.png')
 
 def generate_rank_card(level, av_file):
     save_kwargs = {
         "format": "GIF",
-        "save_all": True
+        "save_all": True, 
+        "loop": 0,
+        "duration": 1000
     }
 
-    layer = Image.new(mode='RGBA', size=frames[0].size, color=(0, 0, 0, 0))
+    layer = Image.new(mode='RGBA', size=frame1.size, color=(0, 0, 0, 0))
 
     with Image.open(av_file) as av:
         av = av.resize((AV_WIDTH, AV_WIDTH)) 
@@ -45,20 +45,19 @@ def generate_rank_card(level, av_file):
         layer.paste(im, (digitx, digity))
         digitx += im.size[0]
 
-    for frame in frames:
-        frame = frame.copy()
-        frame.paste(layer)
-        frames.append(frame)
+    f1 = frame1.copy()
+    f2 = frame2.copy()
 
-    byteframes = []
-    for f in frames:
-        byte = BytesIO()
-        byteframes.append(byte)
-        f.save(byte, format='GIF')
-    imgs = [Image.open(byteframe) for byteframe in byteframes]
+    f1.paste(layer)
+    f2.paste(layer)
 
+    b1 = BytesIO()
+    b2 = BytesIO() 
+    f1.save(b1, format='GIF') 
+    f2.save(b2, format='GIF')
+    
     out = BytesIO()
-    imgs[1].save(out, append_images=imgs[2:], **save_kwargs)
+    f1.save(out, append_images=f2, **save_kwargs)
     out.seek(0)
     return out 
 
