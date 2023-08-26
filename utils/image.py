@@ -48,8 +48,8 @@ def generate_rank_card(level, av_file):
     f1 = frame1.copy()
     f2 = frame2.copy()
 
-    f1.paste(layer)
-    f2.paste(layer)
+    f1.paste(layer, (0, 0), layer)
+    f2.paste(layer, (0, 0), layer)
 
     out = BytesIO()
     # f1.save(out, append_images=[f2], **save_kwargs)
