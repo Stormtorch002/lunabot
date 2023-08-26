@@ -11,7 +11,7 @@ numbers = {}
 for i in range(9):
     im = Image.open(f'assets/{i}.png')
     newy = LVL_HEIGHT 
-    newx = im.size[0] * (newy / im.size[1])
+    newx = round(im.size[0] * (newy / im.size[1]))
     im = im.resize((newx, newy))
     numbers[str(i)] = im 
 
