@@ -29,7 +29,7 @@ def generate_rank_card(level, av_data):
 
     layer = Image.new(mode='RGBA', size=frames[0].size, color=(0, 0, 0, 0))
     
-    av = Image.open(av_data)
+    av = Image.open(BytesIO(av_data))
     av = av.resize((AV_WIDTH, AV_WIDTH)) 
     mask = Image.new("L", av.size, 0)
     draw = ImageDraw.Draw(mask)
