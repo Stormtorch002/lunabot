@@ -21,7 +21,7 @@ for frame in ImageSequence.Iterator(gif):
     frames.append(frame)
 
 
-def generate_rank_card(level, av_data):
+def generate_rank_card(level, av_file):
     save_kwargs = {
         "format": "GIF",
         "save_all": True
@@ -29,7 +29,7 @@ def generate_rank_card(level, av_data):
 
     layer = Image.new(mode='RGBA', size=frames[0].size, color=(0, 0, 0, 0))
 
-    with Image.open(BytesIO(av_data)) as av:
+    with Image.open(av_file) as av:
         av = av.resize((AV_WIDTH, AV_WIDTH)) 
 
     mask = Image.new("L", av.size, 0)

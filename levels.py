@@ -1,4 +1,5 @@
 from discord.ext import commands
+from io import BytesIO
 from utils.image import generate_rank_card
 from utils.views import RoboPages, AutoSource
 import time
@@ -112,9 +113,10 @@ class Levels(commands.Cog):
             mx = xp
             current_level = get_level(mx)
             nlr = nl = None
-            avdata = await m.display_avatar.with_format('png').read()
+            av_file = BytesIO()
+            await m.display_avatar.with_format('png').save(av_file)
 
-            file = await self.bot.loop.run_in_executor(None, generate_rank_card, current_level, avdata)
+            file = await self.bot.loop.run_in_executor(None, generate_rank_card, current_level, av_file)
             
             total = time.perf_counter() - start
             await ctx.send(f'Render time: `{round(total, 3)}s', file=discord.File(fp=file, filename='rank.gif'))
