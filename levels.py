@@ -112,7 +112,7 @@ class Levels(commands.Cog):
             mx = xp
             current_level = get_level(mx)
             nlr = nl = None
-            avdata = await m.display_avatar.read()
+            avdata = await m.display_avatar.with_format('png').read()
 
             file = await self.bot.loop.run_in_executor(None, generate_rank_card, current_level, avdata)
             
