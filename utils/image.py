@@ -16,8 +16,8 @@ for i in range(9):
     numbers[str(i)] = im 
 
 
-frame1 = Image.open('assets/frame1.png')
-frame2 = Image.open('assets/frame2.png')
+frame1 = Image.open('assets/frame1.png', mode='RGBA')
+frame2 = Image.open('assets/frame2.png', mode='RGBA')
 
 def generate_rank_card(level, av_file):
     save_kwargs = {
