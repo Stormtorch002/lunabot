@@ -16,7 +16,7 @@ for i in range(9):
     numbers[str(i)] = im 
 
 frames = []
-gif = Image.open('rc.gif')
+gif = Image.open('assets/rc.gif')
 for frame in ImageSequence.Iterator(gif):
     frames.append(frame)
 
