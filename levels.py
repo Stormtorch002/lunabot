@@ -127,7 +127,7 @@ class Levels(commands.Cog):
             file = await self.bot.loop.run_in_executor(None, generate_rank_card, current_level, av_file, pc)
             t2 = time.perf_counter()
 
-            embed = discord.Embed(title='❀ㆍㆍYour Rank﹗⁺ ₍ <a:LCD_flower_spin:1147757953064128512> ₎')
+            embed = discord.Embed(title='❀ㆍㆍYour Rank﹗⁺ ₍ <a:LCD_flower_spin:1147757953064128512> ₎', color=0xcab7ff)
             embed.description = (f'''
 > ⁺ <a:Lumi_arrow_R:927733713163403344>﹒__Rank__ :: {num2words(rank, to='ordinal_num')}﹒⁺
 > ⁺ <a:Lumi_arrow_R:927733713163403344>﹒__XP__ :: {xp}﹒⁺
