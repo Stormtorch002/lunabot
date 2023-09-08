@@ -6,6 +6,8 @@ AV_WIDTH = 205
 AV_CORNER = (93, 34)
 LVL_CORNER = (329, 142)
 LVL_HEIGHT = 229 - 142
+PBAR_CORNER = (320, 253)
+PBAR_FULL_SIZE = (760-320, 270-252)
 
 numbers = {}
 for i in range(9):
@@ -16,10 +18,11 @@ for i in range(9):
     numbers[str(i)] = im 
 
 
+pbar = Image.open('assets/pbar.png').convert(mode='RGBA')
 frame1 = Image.open('assets/frame1.png').convert(mode='RGBA')
 frame2 = Image.open('assets/frame2.png').convert(mode='RGBA')
 
-def generate_rank_card(level, av_file):
+def generate_rank_card(level, av_file, percent):
     save_kwargs = {
         "format": "GIF",
         "save_all": True, 
@@ -46,18 +49,29 @@ def generate_rank_card(level, av_file):
         layer.paste(im, (digitx, digity))
         digitx += im.size[0]
 
+    # crop the progress bar from the right based on the percent 
+    pbar_crop = pbar.crop((0, 0, round(pbar.size[0] * (percent)), pbar.size[1]))
+    # round the corners of pbar_crop
+    mask = Image.new("L", pbar_crop.size, 0)
+    draw = ImageDraw.Draw(mask)
+    # draw a rounded rectangle over mask
+    draw.rounded_rectangle([(0, 0), pbar_crop.size], fill=255, radius=10)
+    pbar_crop.paste(pbar_crop, (0, 0), mask)
+    pbar_crop = pbar_crop.resize(PBAR_FULL_SIZE)
+    layer.paste(pbar_crop, PBAR_CORNER, pbar_crop)
+    
     f1 = frame1.copy()
     f2 = frame2.copy()
 
     f1.paste(layer, (0, 0), layer)
     f2.paste(layer, (0, 0), layer)
 
-    b1 = BytesIO()
-    b2 = BytesIO()
-    f1.save(b1, 'GIF')
-    f2.save(b2, 'GIF')
-    f1 = Image.open(b1)
-    f2 = Image.open(b2)
+    # b1 = BytesIO()
+    # b2 = BytesIO()
+    # f1.save(b1, 'GIF')
+    # f2.save(b2, 'GIF')
+    # f1 = Image.open(b1)
+    # f2 = Image.open(b2)
 
     out = BytesIO()
     f1.save(out, append_images=[f2], **save_kwargs)

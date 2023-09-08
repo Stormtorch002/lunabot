@@ -1,4 +1,5 @@
 from discord.ext import commands
+from num2words import ordinal_num
 from io import BytesIO
 from utils.image import generate_rank_card
 from utils.views import RoboPages, AutoSource
@@ -26,7 +27,6 @@ class Levels(commands.Cog):
         self.xp_cooldowns = {}
         self.leveled_roles = {}
         self.xp_cache = {} 
-
 
     async def cog_load(self):
         query = 'select user_id, total_xp from xp'
@@ -61,8 +61,10 @@ class Levels(commands.Cog):
                     await message.author.remove_roles(role)
 
         if old_level != new_level:
-            msg = f'Congrats, {message.author.mention}! You made it to level **{new_level}**.'
-            await message.channel.send(msg) 
+            embed = discord.Embed(title='❀ㆍㆍLevel Up﹗⁺ ₍ <a:LC_lilac_heart_NF2U_DNS:1046191564055138365> ₎', color=0xcab7ff)
+            embed.description = f'> ♡﹒﹒**Psst!** Tysm for being active here with us, you are now __level {new_level}. Keep sending messages to gain more levels, which can gain you some **epic perks**. Tired of receiving these level up messages?? Go [here](https://discord.com/channels/899108709450543115/1106225161562230925) to remove access to this channel; just react to that message again to regain access. <a:LC_star_burst:1147790893064142989> ✿❀'
+            embed.set_footer(text='⁺﹒Type ".myperks" to view our full list of available perks, including perks for our active members﹒⁺')
+            await message.channel.send(f'⁺﹒{message.author.mention}﹗𖹭﹒⁺', embed=embed)
 
         self.xp_cooldowns[message.author.id] = time.time() + 15
 
@@ -109,17 +111,34 @@ class Levels(commands.Cog):
             xp = self.xp_cache.get(m.id)
             if xp is None:
                 self.xp_cache[ctx.author.id] = 0
+                xp = 0
 
+            rank = len(v for v in self.xp_cache.values() if v > xp) + 1
             mx = xp
             current_level = get_level(mx)
+
+            empty = get_xp(current_level)
+            full = get_xp(current_level+1)
+            pc = (mx - empty) / (full - empty)
+
             nlr = nl = None
             av_file = BytesIO()
             await m.display_avatar.with_format('png').save(av_file)
 
-            file = await self.bot.loop.run_in_executor(None, generate_rank_card, current_level, av_file)
-            
-            total = time.perf_counter() - start
-            await ctx.send(f'Render time: `{round(total, 3)}s', file=discord.File(fp=file, filename='rank.gif'))
+            t1 = time.perf_counter()
+            file = await self.bot.loop.run_in_executor(None, generate_rank_card, current_level, av_file, pc)
+            t2 = time.perf_counter()
+
+            embed = discord.Embed(title='❀ㆍㆍYour Rank﹗⁺ ₍ <a:LCD_flower_spin:1147757953064128512> ₎')
+            embed.description = (f'''
+> ⁺ <a:Lumi_arrow_R:927733713163403344>﹒__Rank__ :: {ordinal_num(rank)}﹒⁺
+> ⁺ <a:Lumi_arrow_R:927733713163403344>﹒__XP__ :: {xp}﹒⁺
+> ⁺ <a:Lumi_arrow_R:927733713163403344>﹒__Needed XP__ :: {full - mx}﹒⁺')
+            ''')
+            embed.set_footer(text='⁺﹒Type ".myperks" to view our full list of available perks, including perks for our active members﹒⁺')
+            total = t2 - t1 
+
+            await ctx.send(f'Render time: `{round(total, 3)}s', embed=embed, file=discord.File(fp=file, filename='rank.gif'))
 
 
     @commands.command(aliases=['leaaderboard'])
@@ -146,7 +165,7 @@ class Levels(commands.Cog):
 
         for rows in chunks:
             
-            embed = discord.Embed(title=f'Leaderboard for {ctx.guild.name}', color=ctx.author.color)
+            embed = discord.Embed(title=f'Leaderboard', color=ctx.author.color)
             embed.set_author(name=f'Page {page}', icon_url=str(ctx.guild.icon.with_format('png')))
             embed.set_footer(text=f'Page {page}/{pages}')
 
