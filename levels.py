@@ -113,7 +113,7 @@ class Levels(commands.Cog):
                 self.xp_cache[ctx.author.id] = 0
                 xp = 0
 
-            rank = len(v for v in self.xp_cache.values() if v > xp) + 1
+            rank = len([v for v in self.xp_cache.values() if v > xp]) + 1
             mx = xp
             current_level = get_level(mx)
 
