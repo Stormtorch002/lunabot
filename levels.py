@@ -1,5 +1,5 @@
 from discord.ext import commands
-from num2words import ordinal_num
+from num2words import num2words
 from io import BytesIO
 from utils.image import generate_rank_card
 from utils.views import RoboPages, AutoSource
@@ -131,7 +131,7 @@ class Levels(commands.Cog):
 
             embed = discord.Embed(title='❀ㆍㆍYour Rank﹗⁺ ₍ <a:LCD_flower_spin:1147757953064128512> ₎')
             embed.description = (f'''
-> ⁺ <a:Lumi_arrow_R:927733713163403344>﹒__Rank__ :: {ordinal_num(rank)}﹒⁺
+> ⁺ <a:Lumi_arrow_R:927733713163403344>﹒__Rank__ :: {num2words(rank, to='ordinal_num')}﹒⁺
 > ⁺ <a:Lumi_arrow_R:927733713163403344>﹒__XP__ :: {xp}﹒⁺
 > ⁺ <a:Lumi_arrow_R:927733713163403344>﹒__Needed XP__ :: {full - mx}﹒⁺')
             ''')
