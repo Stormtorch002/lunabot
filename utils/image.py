@@ -55,7 +55,7 @@ def generate_rank_card(level, av_file, percent):
     mask = Image.new("L", pbar_crop.size, 0)
     draw = ImageDraw.Draw(mask)
     # draw a rounded rectangle over mask
-    draw.rounded_rectangle([(0, 0), pbar_crop.size], fill=255, radius=20)
+    draw.rounded_rectangle([(0, 0), pbar_crop.size], fill=255, radius=10)
     new = Image.new(mode='RGBA', size=pbar_crop.size, color=0)
     new.paste(pbar_crop, (0, 0), mask)
     new = new.resize((round(PBAR_FULL_SIZE[0]*percent), PBAR_FULL_SIZE[1]))

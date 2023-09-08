@@ -62,7 +62,7 @@ class Levels(commands.Cog):
 
         if old_level != new_level:
             embed = discord.Embed(title='❀ㆍㆍLevel Up﹗⁺ ₍ <a:LC_lilac_heart_NF2U_DNS:1046191564055138365> ₎', color=0xcab7ff)
-            embed.description = f'> ♡﹒﹒**Psst!** Tysm for being active here with us, you are now __level {new_level}. Keep sending messages to gain more levels, which can gain you some **epic perks**. Tired of receiving these level up messages?? Go [here](https://discord.com/channels/899108709450543115/1106225161562230925) to remove access to this channel; just react to that message again to regain access. <a:LC_star_burst:1147790893064142989> ✿❀'
+            embed.description = f'> ♡﹒﹒**Psst!** Tysm for being active here with us, you are now level {new_level}. Keep sending messages to gain more levels, which can gain you some **epic perks**. Tired of receiving these level up messages?? Go [here](https://discord.com/channels/899108709450543115/1106225161562230925) to remove access to this channel; just react to that message again to regain access. <a:LC_star_burst:1147790893064142989> ✿❀'
             embed.set_footer(text='⁺﹒Type ".myperks" to view our full list of available perks, including perks for our active members﹒⁺')
             await message.channel.send(f'⁺﹒{message.author.mention}﹗𖹭﹒⁺', embed=embed)
 
@@ -106,8 +106,6 @@ class Levels(commands.Cog):
 
         async with ctx.channel.typing():
 
-            start = time.perf_counter()
-
             xp = self.xp_cache.get(m.id)
             if xp is None:
                 self.xp_cache[ctx.author.id] = 0
@@ -136,9 +134,9 @@ class Levels(commands.Cog):
 > ⁺ <a:Lumi_arrow_R:927733713163403344>﹒__Needed XP__ :: {full - mx}﹒⁺')
             ''')
             embed.set_footer(text='⁺﹒Type ".myperks" to view our full list of available perks, including perks for our active members﹒⁺')
+            embed.set_image(url='attachment://rank.gif')
             total = t2 - t1 
-
-            await ctx.send(f'Render time: `{round(total, 3)}s', embed=embed, file=discord.File(fp=file, filename='rank.gif'))
+            await ctx.send(f'Render time: `{round(total, 3)}s`', embed=embed, file=discord.File(fp=file, filename='rank.gif'))
 
 
     @commands.command(aliases=['leaaderboard'])
