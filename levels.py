@@ -38,6 +38,25 @@ class Levels(commands.Cog):
             75: 923096798078324756,
             100: 923096803958747187
         }
+        self.blacklisted_channels = [
+            899112780840468561,
+            1093318315792945243,
+            899119063496785950,
+            899119100536705084,
+            1023276761087234098,
+            1073847932828258384,
+            964728745451728946,
+            933877494598225930,
+            1096583202254110761,
+            1104219541992648764,
+            1104219647663931453,
+            1106805421630574612,
+            1106805666997358623,
+            1106805702619578518 ,
+            1106819476093149274,
+            899513989061554257
+        ]
+
         self.xp_cache = {} 
 
     async def cog_load(self):
@@ -76,7 +95,8 @@ class Levels(commands.Cog):
             embed = discord.Embed(title='❀ㆍㆍLevel Up﹗⁺ ₍ <a:LC_lilac_heart_NF2U_DNS:1046191564055138365> ₎', color=0xcab7ff)
             embed.description = f'> ♡﹒﹒**Psst!** Tysm for being active here with us, you are now level {new_level}. Keep sending messages to gain more levels, which can gain you some **epic perks**. Tired of receiving these level up messages?? Go [here](https://discord.com/channels/899108709450543115/1106225161562230925) to remove access to this channel; just react to that message again to regain access. <a:LC_star_burst:1147790893064142989> ✿❀'
             embed.set_footer(text='⁺﹒Type ".myperks" to view our full list of available perks, including perks for our active members﹒⁺')
-            await message.channel.send(f'⁺﹒{message.author.mention}﹗𖹭﹒⁺', embed=embed)
+            channel = self.bot.get_channel(1137942143562940436)
+            await channel.send(f'⁺﹒{message.author.mention}﹗𖹭﹒⁺', embed=embed)
 
         self.xp_cooldowns[message.author.id] = time.time() + 15
 
@@ -96,7 +116,7 @@ class Levels(commands.Cog):
     async def on_message(self, message):
         if not message.guild:
             return
-        if message.channel.id == 899725913586032701 and not message.author.bot:
+        if message.channel.id not in self.blacklisted_channels and not message.author.bot:
             if message.author.id not in self.xp_cooldowns or self.xp_cooldowns[message.author.id] < time.time():
                 increment = random.randint(6, 9)
                 old = self.xp_cache.get(message.author.id)

@@ -6,14 +6,10 @@ import discord
 import json 
 import asyncio 
 import re 
-from discord.ext.commands import Greedy 
-from typing import Union, Literal
-from discord import Member, Role, TextChannel
-
 
 class AutoResponder:
 
-    def __init__(self, phrase, detection, guilds, wlusers, blusers, wlroles, blroles, wlchannels, blchannels, text, embed):
+    def __init__(self, phrase, detection, guilds, wlusers, blusers, wlroles, blroles, wlchannels, blchannels, text, embed, autoemojis):
         self.phrase = phrase 
         self.detection = detection 
 
@@ -29,7 +25,7 @@ class AutoResponder:
             self.embed = json.loads(embed)
         else:
             self.embed = None 
-
+        self.autoemojis = json.loads(autoemojis) if autoemojis else []
 
 class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autoresponder stuff (admin only)"):
     def __init__(self, bot):
@@ -45,7 +41,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
 
                 for row in rows:
                     self.ars.append(
-                        AutoResponder(*[row[i] for i in range(1, 12)])
+                        AutoResponder(*[row[i] for i in range(1, 13)])
                     )
 
     async def cog_check(self, ctx):
@@ -86,7 +82,12 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             elif ar.detection == 'regex':
                 if not re.search(ar.phrase, msg.content, re.IGNORECASE):
                     continue 
-            
+
+            if ar.autoemojis:
+                for emoji in ar.autoemojis:
+                    await msg.add_reaction(emoji)
+                continue  
+
             if ar.embed:
                 embed = discord.Embed.from_dict(ar.embed)
             else:
@@ -158,48 +159,86 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             return 
         guild_ids = [int(guild_id) for guild_id in guild_ids]
         
-        def check(m):
-            return m.author == ctx.author and m.channel == ctx.channel 
-        
-        await ctx.send("Please type the text component of the autoresponse. Type `skip` to skip this step.")
-        resp = await self.bot.wait_for('message', check=check)
-        if resp.content.lower() == 'skip':
-            text = None 
-        else:
-            text = resp.content
 
-        view = EmbedEditor(self.bot, ctx.author, timeout=None)
-        if text is None:
-            await ctx.send("Please use the menu to create an embed.", view=view)
-            await view.wait()
-        else:
-            def check(m):
-                return m.author == ctx.author and m.channel == ctx.channel and m.content.lower() == 'skip'
+        # make a view for user to select either message responder or autoreaction
+        class View(ui.View):
+                
+            def __init__(self):
+                super().__init__()
+                self.ready = False 
+                self.choice = None
+                self.inter = None  
+
+            async def interaction_check(self, interaction):
+                return interaction.user == ctx.author 
+
+            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['message', 'autoreaction']])        
+            async def allowtype(self, inter, sel):
+                self.choice = sel.values[0]
+                self.inter = inter 
+                self.ready = True 
+                self.stop()
+
+        view2 = View()
+        msg = await ctx.send('What type of autoresponder would you like to make?', view=view2)
+        await view2.wait()
+        if not view2.ready:
+            await msg.delete()
+            return
+        
+        if view2.choice == 'message':
             
-            await ctx.send("Please use the menu to create an embed, or type `skip` to skip.", view=view)
-            task1 = self.bot.wait_for('message', check=check)
-            task2 = view.wait()
-            tasks = [task1, task2]
-            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-            for task in pending:
-                task.cancel()
+            def check(m):
+                return m.author == ctx.author and m.channel == ctx.channel 
+            
+            await ctx.send("Please type the text component of the autoresponse. Type `skip` to skip this step.")
+            resp = await self.bot.wait_for('message', check=check)
+            if resp.content.lower() == 'skip':
+                text = None 
+            else:
+                text = resp.content
 
-        embed = None 
-        if view.ready:
-            embed = json.dumps(view.current_embed.to_dict())
-        else:
+            view = EmbedEditor(self.bot, ctx.author, timeout=None)
             if text is None:
-                return await ctx.send('Autoresponder cancelled.')
-        self.ars.append(
-            AutoResponder(phrase.lower(), choice, json.dumps(guild_ids), '[]', '[]', '[]', '[]', '[]', '[]', text, embed)
-        )
-        async with self.bot.pool.acquire() as conn:
-            query = '''INSERT INTO ars (phrase, detection, guilds, message, embed)
-                        VALUES (?, ?, ?, ?, ?)'''
-            await conn.execute(query, (phrase.lower(), choice, json.dumps(guild_ids), text, embed))
-            await conn.commit()
+                await ctx.send("Please use the menu to create an embed.", view=view)
+                await view.wait()
+            else:
+                def check(m):
+                    return m.author == ctx.author and m.channel == ctx.channel and m.content.lower() == 'skip'
+                
+                await ctx.send("Please use the menu to create an embed, or type `skip` to skip.", view=view)
+                task1 = self.bot.wait_for('message', check=check)
+                task2 = view.wait()
+                tasks = [task1, task2]
+                done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                for task in pending:
+                    task.cancel()
+
+            embed = None 
+            if view.ready:
+                embed = json.dumps(view.current_embed.to_dict())
+            else:
+                if text is None:
+                    return await ctx.send('Autoresponder cancelled.')
+            self.ars.append(
+                AutoResponder(phrase.lower(), choice, json.dumps(guild_ids), '[]', '[]', '[]', '[]', '[]', '[]', text, embed, [])
+            )
+            async with self.bot.pool.acquire() as conn:
+                query = '''INSERT INTO ars (phrase, detection, guilds, message, embed)
+                            VALUES (?, ?, ?, ?, ?)'''
+                await conn.execute(query, (phrase.lower(), choice, json.dumps(guild_ids), text, embed))
+                await conn.commit()
+        else:
+            emojis = await self.getemojis(ctx)
+            query = 'INSERT INTO ars (phrase, detection, guilds, emojis) VALUES (?, ?, ?, ?)'
+
+            self.ars.append(
+                AutoResponder(phrase.lower(), choice, json.dumps(guild_ids), '[]', '[]', '[]', '[]', '[]', '[]', None, None, emojis)
+            )
+            await self.bot.db.execute(query, phrase.lower(), choice, json.dumps(guild_ids), emojis)
+            
         await ctx.send('Successfully made autoresponder!')
-        
+
     @commands.command()
     async def removear(self, ctx, *, phrase):
         """Removes an autoresponder."""
@@ -214,12 +253,81 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         await ctx.send('No autoresponder with that name.')
 
     @commands.command()
-    async def allowar(self, ctx, *, phrase):
-        phrase = phrase.lower() 
-        query = 'SELECT id FROM ars WHERE phrase = ?' 
-        val = await self.bot.db.fetchval(query, phrase)
-        if val is None:
+    async def editar(self, ctx, *, phrase):
+        # create a select menu with the following choices: allow, deny, add autoreaction, remove autoreaction 
+        phrase = phrase.lower()
+        for ar in self.ars:
+            if ar.phrase == phrase:
+                break
+        else:
             return await ctx.send('No autoresponder with that phrase.')
+        
+        class View(ui.View):
+                
+            def __init__(self):
+                super().__init__()
+                self.ready = False 
+                self.choice = None
+                self.inter = None  
+
+            async def interaction_check(self, interaction):
+                return interaction.user == ctx.author 
+
+            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['allow', 'deny']])        
+            async def allowtype(self, inter, sel):
+                self.choice = sel.values[0]
+                self.inter = inter 
+                self.ready = True 
+                self.stop()
+
+            
+        view = View()
+        msg = await ctx.send('What would you like to edit?', view=view)
+        await view.wait()
+        if not view.ready:
+            await msg.delete()
+            return
+
+        if view.choice == 'allow':
+            await self.allowar(ctx, phrase=phrase)
+        elif view.choice == 'deny':
+            await self.denyar(ctx, phrase=phrase)
+        elif view.choice == 'add autoreaction':
+            await self.addarar(ctx, phrase=phrase)
+        elif view.choice == 'remove autoreaction':
+            await self.removearar(ctx, phrase=phrase)
+
+    async def getemojis(self, ctx):
+        temp = await ctx.send('Please send one or more emojis, separated by spaces. This will override any previous emojis set in this autoresponder.')
+
+        def check(m):
+            return m.author == ctx.author and m.channel == ctx.channel
+        
+        try:
+            resp = await self.bot.wait_for('message', check=check, timeout=60)
+        except asyncio.TimeoutError:
+            await temp.delete()
+            return await ctx.send('You took too long to respond.')
+        
+        args = resp.content.split()
+        emojis = []
+        conv = commands.EmojiConverter()
+        errs = []
+        for arg in args:
+            try:
+                emoji = await conv.convert(ctx, arg)
+            except commands.EmojiNotFound:
+                errs.append(f'Emoji {arg} not found.')
+                continue 
+            emojis.append(emoji)
+        if errs:
+            await ctx.send('\n'.join(errs))
+        
+        emojis_json = json.dumps([str(emoji) for emoji in emojis])
+        return emojis_json 
+
+        
+    async def allowar(self, ctx, phrase):
 
         class View(ui.View):
 
@@ -300,13 +408,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
          
         await view2.inter.response.edit_message(view=None, content='Edited your autoresponder!')
 
-    @commands.command()
     async def denyar(self, ctx, *, phrase):
-        phrase = phrase.lower() 
-        query = 'SELECT id FROM ars WHERE phrase = ?' 
-        val = await self.bot.db.fetchval(query, phrase)
-        if val is None:
-            return await ctx.send('No autoresponder with that phrase.')
 
         class View(ui.View):
 
