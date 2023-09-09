@@ -292,22 +292,18 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             return
 
         if view.choice == 'allow':
-            await self.allowar(ctx, phrase=phrase)
+            await self.allowar(ctx, view.inter, phrase=phrase)
         elif view.choice == 'deny':
-            await self.denyar(ctx, phrase=phrase)
-        elif view.choice == 'add autoreaction':
-            await self.addarar(ctx, phrase=phrase)
-        elif view.choice == 'remove autoreaction':
-            await self.removearar(ctx, phrase=phrase)
+            await self.denyar(ctx, view.inter, phrase=phrase)
 
     async def getemojis(self, ctx, inter):
-        temp = await inter.response.send_message('Please send one or more emojis, separated by spaces. This will override any previous emojis set in this autoresponder.')
+        temp = await inter.response.send_message('Please send one or more emojis, separated by spaces.')
 
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel
         
         try:
-            resp = await self.bot.wait_for('message', check=check, timeout=60)
+            resp = await self.bot.wait_for('message', check=check, timeout=300)
         except asyncio.TimeoutError:
             await temp.delete()
             return await ctx.send('You took too long to respond.')
@@ -330,7 +326,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         return emojis_json 
 
         
-    async def allowar(self, ctx, phrase):
+    async def allowar(self, ctx, inter, phrase):
 
         class View(ui.View):
 
@@ -351,7 +347,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 self.stop() 
         
         view = View()
-        msg = await ctx.send('What would you like to allow?', view=view)
+        msg = await inter.response.send_message('What would you like to allow?', view=view)
         await view.wait()
         if not view.ready:
             await msg.delete()
@@ -411,7 +407,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
          
         await view2.inter.response.edit_message(view=None, content='Edited your autoresponder!')
 
-    async def denyar(self, ctx, *, phrase):
+    async def denyar(self, ctx, inter, phrase):
 
         class View(ui.View):
 
@@ -436,7 +432,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 self.stop() 
         
         view = View()
-        msg = await ctx.send('What would you like to allow?', view=view)
+        msg = await inter.response.send_message('What would you like to allow?', view=view)
         await view.wait()
         if not view.ready:
             await msg.delete()
