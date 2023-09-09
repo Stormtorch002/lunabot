@@ -195,6 +195,7 @@ class TimeDenyModal(ui.Modal, title='When user hasn\'t stayed long enough'):
         await inter.response.edit_message(embed=self.embed)
 class RRView3(ui.View):
     def __init__(self, ctx, embed):
+        super().__init__(timeout=None)
         self.ctx = ctx 
         self.embed = embed 
         self.role = None 
