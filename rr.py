@@ -57,14 +57,14 @@ class RRView1(ui.View):
             await inter.response.send_message('Please enter either a message or an embed.', ephemeral=True)
             return 
 
-        await inter.response.delete_message()
+        await inter.delete_original_message()
         
         self.ready = True 
         self.stop()
 
     @ui.button(label='Quit', style=ButtonStyle.red)
     async def quitbtn(self, inter, button):
-        await inter.response.delete_message()
+        await inter.delete_original_message()
         self.stop()
 
 
@@ -118,11 +118,11 @@ class RRView2(ui.View):
     async def ez(self, inter, select):
         self.limit = select.values[0]
         self.ready = True 
-        await inter.response.delete_message()
+        await inter.delete_original_message()
 
     @ui.button(label='Submit', style=ButtonStyle.green)
     async def submit(self, inter, button):
-        await inter.response.delete_message()
+        await inter.delete_original_message()
         self.stop()
 
 
@@ -222,7 +222,7 @@ class RRView3(ui.View):
             await tdmodal.wait()
             self.time_denymsg = tdmodal.denymsg
 
-        await inter.response.delete_message()
+        await inter.delete_original_message()
         
         self.ready = True 
         self.stop()
