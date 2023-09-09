@@ -15,6 +15,7 @@ class TextModal(ui.Modal, title='Customize the reaction role message'):
 
     def __init__(self, embed):
         self.embed = embed 
+        super().__init__()
 
     async def on_submit(self, inter):
         self.embed.clear_fields()
