@@ -191,7 +191,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             def check(m):
                 return m.author == ctx.author and m.channel == ctx.channel 
             
-            await ctx.send("Please type the text component of the autoresponse. Type `skip` to skip this step.")
+            await view2.inter.response.send_message("Please type the text component of the autoresponse. Type `skip` to skip this step.")
             resp = await self.bot.wait_for('message', check=check)
             if resp.content.lower() == 'skip':
                 text = None 
@@ -229,7 +229,10 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 await conn.execute(query, (phrase.lower(), choice, json.dumps(guild_ids), text, embed))
                 await conn.commit()
         else:
-            emojis = await self.getemojis(ctx)
+            emojis = await self.getemojis(ctx, view2.inter)
+            if not emojis:
+                return await ctx.send('Please provide at least one valid emoji, autoresponder cancelled.')
+
             query = 'INSERT INTO ars (phrase, detection, guilds, emojis) VALUES (?, ?, ?, ?)'
 
             self.ars.append(
@@ -297,8 +300,8 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         elif view.choice == 'remove autoreaction':
             await self.removearar(ctx, phrase=phrase)
 
-    async def getemojis(self, ctx):
-        temp = await ctx.send('Please send one or more emojis, separated by spaces. This will override any previous emojis set in this autoresponder.')
+    async def getemojis(self, ctx, inter):
+        temp = await inter.response.send_message('Please send one or more emojis, separated by spaces. This will override any previous emojis set in this autoresponder.')
 
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel
