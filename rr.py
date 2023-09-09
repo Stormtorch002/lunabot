@@ -372,14 +372,14 @@ class RR(commands.Cog, name='Reaction Roles'):
 
         query = 'SELECT role_id FROM rr_selections WHERE user_id = ? AND channel_id = ? AND message_id = ?'
         rows = await self.bot.db.fetch(query, payload.user_id, payload.channel_id, payload.message_id)
-        if payload.emoji.name in [str(row['role_id']) for row in rows]:
+        if str(payload.emoji) in [str(row['role_id']) for row in rows]:
             return await payload.member.remove_reaction(payload.emoji, payload.member.guild.get_channel(payload.channel_id).get_partial_message(payload.message_id))
 
         map = json.loads(row['map'])
-        if payload.emoji.name not in map:
+        if str(payload.emoji) not in map:
             return await payload.member.remove_reaction(payload.emoji, payload.member.guild.get_channel(payload.channel_id).get_partial_message(payload.message_id))
         
-        role = payload.member.guild.get_role(map[payload.emoji.name])
+        role = payload.member.guild.get_role(map[str(payload.emoji)])
         await payload.member.add_roles(role)
         query = 'INSERT INTO rr_selections (user_id, channel_id, message_id, role_id) VALUES (?, ?, ?, ?)'
         await self.bot.db.execute(query, payload.user_id, payload.channel_id, payload.message_id, role.id)
@@ -392,10 +392,10 @@ class RR(commands.Cog, name='Reaction Roles'):
             return 
 
         map = json.loads(row['map'])
-        if payload.emoji.name not in map:
+        if str(payload.emoji) not in map:
             return 
 
-        role = payload.member.guild.get_role(map[payload.emoji.name])
+        role = payload.member.guild.get_role(map[str(payload.emoji)])
         await payload.member.remove_roles(role)
         query = 'DELETE FROM rr_selections WHERE user_id = ? AND channel_id = ? AND message_id = ? AND role_id = ?'
         await self.bot.db.execute(query, payload.user_id, payload.channel_id, payload.message_id, role.id)
