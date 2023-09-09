@@ -359,7 +359,7 @@ class RR(commands.Cog, name='Reaction Roles'):
         if row['req_time'] is not None:
             if payload.member.joined_at is None:
                 return await payload.member.remove_reaction(payload.emoji, payload.member.guild.get_channel(payload.channel_id).get_partial_message(payload.message_id))
-            if (datetime.datetime.utcnow() - payload.member.joined_at).total_seconds() < row['req_time']:
+            if (discord.utils.utcnow() - payload.member.joined_at).total_seconds() < row['req_time']:
                 if row['no_time_msg'] is not None:
                     await payload.member.send(row['no_time_msg'].replace('{time}', discord.utils.format_dt(payload.member.joined_at + datetime.timedelta(seconds=row['req_time']), 'R')))
                 return await payload.member.remove_reaction(payload.emoji, payload.member.guild.get_channel(payload.channel_id).get_partial_message(payload.message_id))
