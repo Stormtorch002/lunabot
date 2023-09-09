@@ -381,7 +381,7 @@ class RR(commands.Cog, name='Reaction Roles'):
         
         role = payload.member.guild.get_role(map[str(payload.emoji)])
         await payload.member.add_roles(role)
-        query = 'INSERT INTO rr_selections (user_id, channel_id, message_id, role_id) VALUES (?, ?, ?, ?)'
+        query = 'INSERT INTO rr_selections (user_id, channel_id, message_id, role_id) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING'
         await self.bot.db.execute(query, payload.user_id, payload.channel_id, payload.message_id, role.id)
 
     @commands.Cog.listener()
