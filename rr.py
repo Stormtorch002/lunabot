@@ -33,10 +33,10 @@ class RRView1(ui.View):
 
         self.modal = None 
 
+        super().__init__(timeout=None)
+
         for option in options:
             self.embedsel.add_option(label=option)
-
-        super().__init__(timeout=None)
     
     @ui.button(label='Add message text', style=ButtonStyle.green)
     async def addmsg(self, inter, button):
