@@ -107,6 +107,9 @@ class RRView2(ui.View):
             return False 
     
     def __init__(self, ctx, length):
+
+        super().__init__(timeout=None)
+
         self.ez.add_option(label='No limit', value=-1)
         
         for i in range(1, length):
@@ -115,7 +118,6 @@ class RRView2(ui.View):
         self.ctx = ctx 
         self.limit = None
         self.ready = False 
-        super().__init__(timeout=None)
 
 
     @ui.select()
