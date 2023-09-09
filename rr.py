@@ -1,13 +1,10 @@
-from typing import Optional
 from discord import app_commands 
 from discord.ext import commands, tasks 
 import discord 
 import time 
 import datetime 
 from discord import ui
-from discord.interactions import Interaction 
 from discord import ButtonStyle
-from embed_editor.editor import EmbedEditor
 import json 
 import textwrap 
 from discord import TextStyle 
@@ -315,7 +312,7 @@ class RR(commands.Cog, name='Reaction Roles'):
         for emoji in stuff:
             await msgout.add_reaction(emoji)
 
-        query = 'INSERT INTO rrs (channel_id, message_id, map, max_sel, req_role_id, no_role_message, req_time, no_time_message) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        query = 'INSERT INTO rrs (channel_id, message_id, map, max_sel, req_role_id, no_role_msg, req_time, no_time_msg) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         await self.bot.db.execute(query, channel.id, msgout.id, json.dumps(stuff), view2.limit, view3.role.id if view3.role else None, view3.role_denymsg, view3.seconds, view3.time_denymsg)
         await ctx.send('Successfully added reaction role :white_check_mark:')
 
@@ -333,23 +330,23 @@ class RR(commands.Cog, name='Reaction Roles'):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        query = 'SELECT map, max_sel, req_role_id, no_role_message, req_time, no_time_message FROM rrs WHERE channel_id = ? AND message_id = ?'
+        query = 'SELECT map, max_sel, req_role_id, no_role_msg, req_time, no_time_msg FROM rrs WHERE channel_id = ? AND message_id = ?'
         row = await self.bot.db.fetchrow(query, payload.channel_id, payload.message_id)
         if row is None:
             return 
 
         if row['req_role_id'] is not None:
             if row['req_role_id'] not in [role.id for role in payload.member.roles]:
-                if row['no_role_message'] is not None:
-                    await payload.member.send(row['no_role_message'])
+                if row['no_role_msg'] is not None:
+                    await payload.member.send(row['no_role_msg'])
                 return await payload.member.remove_reaction(payload.emoji, payload.member.guild.get_channel(payload.channel_id).get_partial_message(payload.message_id))
 
         if row['req_time'] is not None:
             if payload.member.joined_at is None:
                 return await payload.member.remove_reaction(payload.emoji, payload.member.guild.get_channel(payload.channel_id).get_partial_message(payload.message_id))
             if (datetime.datetime.utcnow() - payload.member.joined_at).total_seconds() < row['req_time']:
-                if row['no_time_message'] is not None:
-                    await payload.member.send(row['no_time_message'].replace('{time}', discord.utils.format_dt(payload.member.joined_at + datetime.timedelta(seconds=row['req_time']), 'R')))
+                if row['no_time_msg'] is not None:
+                    await payload.member.send(row['no_time_msg'].replace('{time}', discord.utils.format_dt(payload.member.joined_at + datetime.timedelta(seconds=row['req_time']), 'R')))
                 return await payload.member.remove_reaction(payload.emoji, payload.member.guild.get_channel(payload.channel_id).get_partial_message(payload.message_id))
 
         if row['max_sel'] != -1:
@@ -387,18 +384,6 @@ class RR(commands.Cog, name='Reaction Roles'):
         await payload.member.remove_roles(role)
         query = 'DELETE FROM rr_selections WHERE user_id = ? AND channel_id = ? AND message_id = ? AND role_id = ?'
         await self.bot.db.execute(query, payload.user_id, payload.channel_id, payload.message_id, role.id)
-
-
-        
-
-
-        
-        
-
-
-        
-
-
 
 
 async def setup(bot):
