@@ -395,8 +395,11 @@ class RR(commands.Cog, name='Reaction Roles'):
         if str(payload.emoji) not in map:
             return 
 
-        role = payload.member.guild.get_role(map[str(payload.emoji)])
-        await payload.member.remove_roles(role)
+        guild = self.bot.get_guild(payload.guild_id)
+        member = guild.get_member(payload.user_id)
+
+        role = member.guild.get_role(map[str(payload.emoji)])
+        await member.remove_roles(role)
         query = 'DELETE FROM rr_selections WHERE user_id = ? AND channel_id = ? AND message_id = ? AND role_id = ?'
         await self.bot.db.execute(query, payload.user_id, payload.channel_id, payload.message_id, role.id)
 
