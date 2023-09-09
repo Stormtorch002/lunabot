@@ -124,10 +124,7 @@ class RRView2(ui.View):
     async def ez(self, inter, select):
         self.limit = select.values[0]
         self.ready = True 
-
-        for item in self.children:
-            item.disabled = True
-        await inter.response.edit_message(view=self)
+        await inter.response.defer()
 
     @ui.button(label='Submit', style=ButtonStyle.green)
     async def submit(self, inter, button):
