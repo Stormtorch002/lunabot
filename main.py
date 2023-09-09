@@ -69,6 +69,7 @@ async def main():
     async with bot:
         bot.owner_ids = [STORCH_ID]
         bot.owner_id = STORCH_ID
+        bot.STORCH_ID = bot.owner_id
         bot.loop.create_task(start())
         await bot.start(TOKEN)
 
