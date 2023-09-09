@@ -131,9 +131,13 @@ class RRView2(ui.View):
 
     @ui.button(label='Submit', style=ButtonStyle.green)
     async def submit(self, inter, button):
+        if self.limit is None:
+            return await inter.response.send_message('Please choose a limit first.', ephemeral=True)
+        
         for item in self.children:
             item.disabled = True
         await inter.response.edit_message(view=self)
+        self.ready = True
         self.stop()
 
 
