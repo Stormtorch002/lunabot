@@ -74,8 +74,9 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
         for x, y in repl.items():
             js = js.replace(x, str(y))
         embed = discord.Embed.from_dict(json.loads(js))
+        text = self.events[str(member.guild.id)][event]['text']
         channel = self.bot.get_channel(self.events[str(member.guild.id)][event]['channel_id'])
-        await channel.send(embed=embed)
+        await channel.send(text, embed=embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -145,10 +146,30 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
             }
             await self.send_embed(member, repl, 'boost')
 
+    @commands.hybrid_command(name='set-event-text')
+    @app_commands.default_permissions()
+    async def settext(self, ctx, event: Literal['welcome', 'goodbye', 'boost', 'birthday'], channel: discord.TextChannel, *, text: str):
+        """Sets the text for welcome/leave/boost/birthday messages."""
+
+        async def ez(event, text):
+            if str(ctx.guild.id) not in self.events:
+                self.events[str(ctx.guild.id)] = {}
+            if event not in self.events[str(ctx.guild.id)]:
+                self.events[str(ctx.guild.id)][event] = {
+                    'channel_id': channel.id,
+                    'text': text
+                }
+            else:
+                self.events[str(ctx.guild.id)][event]['text'] = text 
+
+            with open('events.json', 'w') as f:
+                json.dump(self.events, f)
+            await ctx.send(f'**{event}** message text set!', ephemeral=True)
+            
     @commands.hybrid_command(name='set-event-embed')
     @app_commands.default_permissions()
     async def setembed(self, ctx, event: Literal['welcome', 'goodbye', 'boost', 'birthday'], channel: discord.TextChannel, *, name: str):
-        """Sets an embed for welcome/leave/boost messages."""
+        """Sets an embed for welcome/leave/boost/birthday messages."""
         async with self.bot.pool.acquire() as conn:
             async with conn.cursor() as cur:
                 query = 'SELECT embed FROM embeds WHERE name = ? AND creator_id = ?'
@@ -162,14 +183,17 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
         async def ez(event, embed):
             if str(ctx.guild.id) not in self.events:
                 self.events[str(ctx.guild.id)] = {}
-            self.events[str(ctx.guild.id)][event] = {
-                'channel_id': channel.id,
-                'embed': embed.to_dict()
-            }
+            if event not in self.events[str(ctx.guild.id)]:
+                self.events[str(ctx.guild.id)][event] = {
+                    'channel_id': channel.id,
+                    'embed': embed.to_dict()
+                }
+            else:
+                self.events[str(ctx.guild.id)][event]['embed'] = embed.to_dict()
+
             with open('events.json', 'w') as f:
                 json.dump(self.events, f)
-            await ctx.send(f'**{event}** message set!', ephemeral=True)
-        
+            await ctx.send(f'**{event}** message embed set!', ephemeral=True)
         await ez(event, discord.Embed.from_dict(json.loads(x[0])))
 
         # class View(ui.View):
