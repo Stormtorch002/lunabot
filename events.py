@@ -162,10 +162,11 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
                 }
             else:
                 self.events[str(ctx.guild.id)][event]['text'] = text 
+                self.events[str(ctx.guild.id)][event]['channel_id'] = channel.id 
 
             with open('events.json', 'w') as f:
                 json.dump(self.events, f)
-            await ctx.send(f'**{event}** message text set!', ephemeral=True)
+            await ctx.send(f'**{event}** message text set for {channel.mention}!', ephemeral=True)
             
     @commands.hybrid_command(name='set-event-embed')
     @app_commands.default_permissions()
@@ -191,10 +192,11 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
                 }
             else:
                 self.events[str(ctx.guild.id)][event]['embed'] = embed.to_dict()
+                self.events[str(ctx.guild.id)][event]['channel_id'] = channel.id 
 
             with open('events.json', 'w') as f:
                 json.dump(self.events, f)
-            await ctx.send(f'**{event}** message embed set!', ephemeral=True)
+            await ctx.send(f'**{event}** message embed set for {channel.mention}!', ephemeral=True)
         await ez(event, discord.Embed.from_dict(json.loads(x[0])))
 
         # class View(ui.View):
