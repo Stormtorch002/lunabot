@@ -156,21 +156,20 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
     async def settext(self, ctx, event: Literal['welcome', 'goodbye', 'boost', 'birthday'], channel: discord.TextChannel, *, text: str):
         """Sets the text for welcome/leave/boost/birthday messages."""
 
-        async def ez(event, text):
-            if str(ctx.guild.id) not in self.events:
-                self.events[str(ctx.guild.id)] = {}
-            if event not in self.events[str(ctx.guild.id)]:
-                self.events[str(ctx.guild.id)][event] = {
-                    'channel_id': channel.id,
-                    'text': text
-                }
-            else:
-                self.events[str(ctx.guild.id)][event]['text'] = text 
-                self.events[str(ctx.guild.id)][event]['channel_id'] = channel.id 
+        if str(ctx.guild.id) not in self.events:
+            self.events[str(ctx.guild.id)] = {}
+        if event not in self.events[str(ctx.guild.id)]:
+            self.events[str(ctx.guild.id)][event] = {
+                'channel_id': channel.id,
+                'text': text
+            }
+        else:
+            self.events[str(ctx.guild.id)][event]['text'] = text 
+            self.events[str(ctx.guild.id)][event]['channel_id'] = channel.id 
 
-            with open('events.json', 'w') as f:
-                json.dump(self.events, f)
-            await ctx.send(f'**{event}** message text set for {channel.mention}!', ephemeral=True)
+        with open('events.json', 'w') as f:
+            json.dump(self.events, f)
+        await ctx.send(f'**{event}** message text set for {channel.mention}!', ephemeral=True)
             
     @commands.hybrid_command(name='set-event-embed')
     @app_commands.default_permissions()
