@@ -70,12 +70,16 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
                     task = self.bot.loop.create_task(self.rm_role(row))
                     self.rm_role_tasks[row[4]] = task
 
-        js = json.dumps(self.events[str(member.guild.id)][event]['embed'])
-        text = self.events[str(member.guild.id)][event]['text']
-        for x, y in repl.items():
-            text = text.replace(x, str(y))
-            js = js.replace(x, str(y))
-        embed = discord.Embed.from_dict(json.loads(js))
+        embeddict = self.events[str(member.guild.id)][event].get('embed')]
+        if embedstr:
+            js = json.dumps(embeddict)
+            for x, y in repl.items():
+                text = text.replace(x, str(y))
+                js = js.replace(x, str(y))
+            embed = discord.Embed.from_dict(json.loads(js))
+        else:
+            embed = None
+        text = self.events[str(member.guild.id)][event].get('text')
         channel = self.bot.get_channel(self.events[str(member.guild.id)][event]['channel_id'])
         await channel.send(text, embed=embed)
 
