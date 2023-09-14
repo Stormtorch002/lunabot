@@ -70,8 +70,8 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
                     task = self.bot.loop.create_task(self.rm_role(row))
                     self.rm_role_tasks[row[4]] = task
 
-        embeddict = self.events[str(member.guild.id)][event].get('embed')]
-        if embedstr:
+        embeddict = self.events[str(member.guild.id)][event].get('embed')
+        if embeddict:
             js = json.dumps(embeddict)
             for x, y in repl.items():
                 text = text.replace(x, str(y))
