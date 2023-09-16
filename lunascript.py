@@ -29,88 +29,81 @@ class ScriptContext:
     # make a decorator that will add the function to self.repls
     # make it take an optional argument called aliases 
 
-    # def repl(self, func, aliases=None):
-        # self.repls[func.__name__] = func
-        # if aliases is not None:
-            # for alias in aliases:
-                # self.repls[alias] = func
-        # return func
+    def lunascript_var(func, aliases=None):
+        def wrapper(self, *args, **kwargs):
+            self.vars[func.__name__] = func
+            if aliases is not None:
+                for alias in aliases:
+                    self.vars[alias] = func
+            return func(self, *args, **kwargs)
+        return wrapper   
     
-    # def magicfunc(self, func, aliases=None):
-        # self.magicfuncs[func.__name__] = func
-        # if aliases is not None:
-            # for alias in aliases:
-                # self.magicfuncs[alias] = func
-        # return func
+    def lunascript_func(func, aliases=None):
+        def wrapper(self, *args, **kwargs):
+            self.funcs[func.__name__] = func
+            if aliases is not None:
+                for alias in aliases:
+                    self.funcs[alias] = func
+            return func(self, *args, **kwargs)
+        return wrapper   
 
+    @lunascript_var(aliases=['servername'])
     def server(self):
         """Name of the current server"""
-        var = True 
-        aliases = ['server', 'servername']
         return self.guild.name
-    
+
+    @lunascript_var(aliases=['membercount', 'servermembercount'])
     def members(self):
         """Number of members in the current server"""
-        var = True 
-        aliases = ['members', 'membercount', 'servermembercount']
         return len(self.guild.members) 
 
+    @lunascript_var(aliases=['boostcount', 'serverboostcount'])
     def boosts(self):
         """Number of boosts in the current server"""
-        var = True 
-        aliases = ['boosts', 'boostcount', 'serverboostcount']
         return self.guild.premium_subscription_count
-    
+
+    @lunascript_var(aliases=['serverboostlevel', 'boosttier', 'serverboosttier']) 
     def boostlevel(self):
         """Boost level of the current server"""
-        var = True 
-        aliases = ['boostlevel', 'serverboostlevel', 'boostslevel', 'serverboostslevel']
         return self.guild.premium_tier
-
+ 
+    @lunascript_var(aliases=['channelmention'])
     def channel(self):
         """Mention of the current channel"""
-        var = True 
-        aliases = ['channel', 'channelmention']
         return self.channel.mention
-    
+
+    @lunascript_var 
     def channelname(self):
-        var = True 
-        aliases = ['channelname']
         """Name of the current channel"""
         return self.channel.name
 
+    @lunascript_var(aliases=['member', 'membermention'])
     def member(self):
         """Mention of the current member"""
-        var = True 
-        aliases = ['member', 'membermention']
         return self.member.mention
-    
+
+    @lunascript_var( aliases = ['memberavatar', 'pfp', 'memberpfp'])
     def avatar(self):
         """Avatar of the current member"""
-        var = True 
-        aliases = ['avatar', 'memberavatar', 'pfp', 'memberpfp']
         asset = self.member.display_avatar 
         if asset.is_animated():
             return asset.with_format('gif').url 
         else:
             return asset.with_format('png').url
 
+    @lunascript_var(aliases=['username'])
     def memberusername(self):
         """Username of the current member"""
-        var = True 
-        aliases = ['memberusername', 'username']
         return self.member.name 
-    
+
+    @lunascript_var(aliases = ['name', 'displayname', 'memberdisplayname'])
     def membername(self):
         """Display name of the current member"""
-        var = True 
-        aliases = ['membername', 'name', 'displayname', 'memberdisplayname']
         return self.member.display_name 
-    
+
+    @lunascript_func(aliases=['ordinal'])     
     def th(self, num: int):
         """Converts a number to its ordinal form"""
-        var = False 
-        aliases = ['th', 'ordinal']
         return num2words(num, 'ordinal_num')
 
     
