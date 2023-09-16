@@ -49,8 +49,8 @@ class ScriptContext:
         # func_methods = [
         #     self.th
         # ]
-        # self.vars = {} 
-        # self.funcs = {}
+        self.vars = {} 
+        self.funcs = {}
         # for method in var_methods:
         #     method() 
         # for method in func_methods:
