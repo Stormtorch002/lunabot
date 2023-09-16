@@ -51,12 +51,28 @@ class ScriptContext:
         # func_methods = [
         #     self.th
         # ]
-        self.vars = {} 
-        self.funcs = {}
         # for method in var_methods:
         #     method() 
         # for method in func_methods:
         #     method()
+
+        # make a dict where the key is a tuple of the aliases and the value is the function
+
+        self.vars = {
+            ('server', 'servername'): self.server,
+            ('members', 'membercount', 'servermembercount'): self.members,
+            ('boosts', 'boostcount', 'serverboostcount'): self.boosts,
+            ('boostlevel', 'serverboostlevel', 'boosttier', 'serverboosttier'): self.boostlevel,
+            ('channel', 'channelmention'): self.channel,
+            ('channelname',): self.channelname,
+            ('member', 'membermention'): self.member,
+            ('avatar', 'memberavatar', 'pfp', 'memberpfp'): self.avatar,
+            ('memberusername', 'username'): self.memberusername,
+            ('membername', 'name', 'displayname', 'memberdisplayname'): self.membername
+        }
+        self.funcs = {
+            ('th', 'ordinal'): self.th
+        }
 
     @classmethod 
     def from_ctx(cls, ctx):
@@ -65,42 +81,34 @@ class ScriptContext:
     # make a decorator that will add the function to self.repls
     # make it take an optional argument called aliases 
 
-    @lunascript_var(aliases=['servername'])
     def server(self):
         """Name of the current server"""
         return self.guild.name
 
-    @lunascript_var(aliases=['membercount', 'servermembercount'])
     def members(self):
         """Number of members in the current server"""
         return len(self.guild.members) 
 
-    @lunascript_var(aliases=['boostcount', 'serverboostcount'])
     def boosts(self):
         """Number of boosts in the current server"""
         return self.guild.premium_subscription_count
 
-    @lunascript_var(aliases=['serverboostlevel', 'boosttier', 'serverboosttier']) 
     def boostlevel(self):
         """Boost level of the current server"""
         return self.guild.premium_tier
  
-    @lunascript_var(aliases=['channelmention'])
     def channel(self):
         """Mention of the current channel"""
         return self.channel.mention
 
-    @lunascript_var() 
     def channelname(self):
         """Name of the current channel"""
         return self.channel.name
 
-    @lunascript_var(aliases=['member', 'membermention'])
     def member(self):
         """Mention of the current member"""
         return self.member.mention
 
-    @lunascript_var( aliases = ['memberavatar', 'pfp', 'memberpfp'])
     def avatar(self):
         """Avatar of the current member"""
         asset = self.member.display_avatar 
@@ -109,17 +117,14 @@ class ScriptContext:
         else:
             return asset.with_format('png').url
 
-    @lunascript_var(aliases=['username'])
     def memberusername(self):
         """Username of the current member"""
         return self.member.name 
 
-    @lunascript_var(aliases = ['name', 'displayname', 'memberdisplayname'])
     def membername(self):
         """Display name of the current member"""
         return self.member.display_name 
 
-    @lunascript_func(aliases=['ordinal'])     
     def th(self, num: int):
         """Converts a number to its ordinal form"""
         return num2words(num, 'ordinal_num')

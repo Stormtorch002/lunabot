@@ -29,9 +29,10 @@ class Tools(commands.Cog, description='storchs tools'):
     async def showfuncs(self, ctx):
         ls = ScriptContext.from_ctx(ctx)
         embed = discord.Embed(title='LunaScript Functions', color=0xcab7ff)
-        for name, func in ls.funcs():
+        for names, func in ls.funcs():
             sig = inspect.signature(func)
-            embed.add_field(name=name, value=func.__doc__ + f'\n\nUsage: {sig}', inline=False)
+            names = ', '.join(names)
+            embed.add_field(name=names, value=func.__doc__ + f'\n\nUsage: {sig}', inline=False)
         # make a view with a dropdown to view the magicfuncs 
         await ctx.send(embed=embed)
     
@@ -47,8 +48,9 @@ class Tools(commands.Cog, description='storchs tools'):
     async def showvars(self, ctx):
         ls = ScriptContext.from_ctx(ctx)
         embed = discord.Embed(title='LunaScript Variables', color=0xcab7ff)
-        for name, func in ls.vars.items():
-            embed.add_field(name=name, value=func.__doc__ + f'\n\nExample: {func(ls)}', inline=False)
+        for names, func in ls.vars.items():
+            names = ', '.join(names)
+            embed.add_field(name=names, value=func.__doc__ + f'\n\nExample: {func(ls)}', inline=False)
         await ctx.send(embed=embed)
     
     @commands.command()
