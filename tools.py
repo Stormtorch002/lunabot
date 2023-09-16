@@ -29,7 +29,7 @@ class Tools(commands.Cog, description='storchs tools'):
     async def showfuncs(self, ctx):
         ls = ScriptContext.from_ctx(ctx)
         embed = discord.Embed(title='LunaScript Functions', color=0xcab7ff)
-        for names, func in ls.funcs():
+        for names, func in ls.funcs.items():
             sig = inspect.signature(func)
             names = ', '.join(names)
             embed.add_field(name=names, value=func.__doc__ + f'\n\nUsage: {sig}', inline=False)
@@ -50,7 +50,7 @@ class Tools(commands.Cog, description='storchs tools'):
         embed = discord.Embed(title='LunaScript Variables', color=0xcab7ff)
         for names, func in ls.vars.items():
             names = ', '.join(names)
-            embed.add_field(name=names, value=func.__doc__ + f'\n\nExample: {func(ls)}', inline=False)
+            embed.add_field(name=names, value=func.__doc__ + f'\n\nExample: {func()}', inline=False)
         await ctx.send(embed=embed)
     
     @commands.command()
