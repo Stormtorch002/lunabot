@@ -22,23 +22,28 @@ class ScriptContext:
     # make a decorator that will add the function to self.repls
     # make it take an optional argument called aliases 
 
-    def lunascript_var(func, aliases=None):
-        def wrapper(self, *args, **kwargs):
-            self.vars[func.__name__] = func
-            if aliases is not None:
-                for alias in aliases:
-                    self.vars[alias] = func
-            return func(self, *args, **kwargs)
-        return wrapper   
     
-    def lunascript_func(func, aliases=None):
-        def wrapper(self, *args, **kwargs):
-            self.funcs[func.__name__] = func
-            if aliases is not None:
-                for alias in aliases:
-                    self.funcs[alias] = func
-            return func(self, *args, **kwargs)
-        return wrapper   
+    def lunascript_var(aliases=None):
+        def decorator(func):
+            def wrapper(self, *args, **kwargs):
+                self.vars[func.__name__] = func
+                if aliases is not None:
+                    for alias in aliases:
+                        self.vars[alias] = func
+                return func(self, *args, **kwargs)
+            return wrapper   
+        return decorator
+    
+    def lunascript_func(aliases=None):
+        def decorator(func):
+            def wrapper(self, *args, **kwargs):
+                self.funcs[func.__name__] = func
+                if aliases is not None:
+                    for alias in aliases:
+                        self.funcs[alias] = func
+                return func(self, *args, **kwargs)
+            return wrapper   
+        return decorator
 
     @lunascript_var(aliases=['servername'])
     def server(self):
@@ -65,7 +70,7 @@ class ScriptContext:
         """Mention of the current channel"""
         return self.channel.mention
 
-    @lunascript_var()
+    @lunascript_var() 
     def channelname(self):
         """Name of the current channel"""
         return self.channel.name
