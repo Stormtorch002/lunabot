@@ -3,6 +3,9 @@ import json
 from discord import ui 
 from discord.utils import escape_markdown
 from embed_editor.editor import EmbedEditor
+import discord 
+from lunascript import ScriptContext
+import inspect 
 
 
 class Tools(commands.Cog, description='storchs tools'):
@@ -21,6 +24,25 @@ class Tools(commands.Cog, description='storchs tools'):
         if view.ready:
             await ctx.send(embed=view.current_embed)
         
+    @commands.command()
+    async def showfuncs(self, ctx):
+        ls = ScriptContext.from_ctx(ctx)
+        embed = discord.Embed(title='LunaScript Functions', color=0xcab7ff)
+        for name, func in ls.magicfuncs():
+            sig = inspect.signature(func)
+            embed.add_field(name=name, value=func.__doc__ + f'\n\nUsage: {sig}', inline=False)
+        # make a view with a dropdown to view the magicfuncs 
+        await ctx.send(embed=embed)
+    
+
+    @commands.command()
+    async def showvars(self, ctx):
+        ls = ScriptContext.from_ctx(ctx)
+        embed = discord.Embed(title='LunaScript Variables', color=0xcab7ff)
+        for name, func in ls.repls.items():
+            embed.add_field(name=name, value=func.__doc__ + f'\n\nExample: {func(ls)}', inline=False)
+        await ctx.send(embed=embed)
+    
 
     @commands.command()
     async def grabembed(self, ctx, url):
