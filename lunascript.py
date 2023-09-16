@@ -65,7 +65,7 @@ class ScriptContext:
         """Mention of the current channel"""
         return self.channel.mention
 
-    @lunascript_var 
+    @lunascript_var()
     def channelname(self):
         """Name of the current channel"""
         return self.channel.name
