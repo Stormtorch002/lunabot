@@ -15,6 +15,8 @@ class ScriptContext:
         self.vars = {} 
         self.funcs = {}
         for name, func in self.__class__.__dict__.items():
+            if not hasattr(func, 'var'):
+                continue
             if func.var:
                 self.vars[name] = func 
             else:
