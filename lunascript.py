@@ -7,6 +7,7 @@ from num2words import num2words
 def lunascript_var(aliases=None):
     def decorator(func):
         def wrapper(self, *args, **kwargs):
+            print('hi lol')
             self.vars[func.__name__] = func
             if aliases is not None:
                 for alias in aliases:
@@ -18,6 +19,7 @@ def lunascript_var(aliases=None):
 def lunascript_func(aliases=None):
     def decorator(func):
         def wrapper(self, *args, **kwargs):
+            print('hi lol')
             self.funcs[func.__name__] = func
             if aliases is not None:
                 for alias in aliases:
