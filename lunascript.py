@@ -12,8 +12,28 @@ class ScriptContext:
         self.channel = channel 
         self.member = member 
         self.message = message 
+
+        var_methods = [
+            self.server,
+            self.members,
+            self.boosts,
+            self.boostlevel,
+            self.channel,
+            self.channelname,
+            self.member,
+            self.avatar,
+            self.memberusername,
+            self.membername
+        ]
+        func_methods = [
+            self.th
+        ]
         self.vars = {} 
         self.funcs = {}
+        for method in var_methods:
+            method() 
+        for method in func_methods:
+            method()
 
     @classmethod 
     def from_ctx(cls, ctx):
