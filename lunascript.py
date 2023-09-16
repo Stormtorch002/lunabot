@@ -59,13 +59,13 @@ class ScriptContext:
         # make a dict where the key is a tuple of the aliases and the value is the function
 
         self.vars = {
-            ('server', 'servername'): self.server,
-            ('members', 'membercount', 'servermembercount'): self.members,
+            ('server', 'servername'): self.servername,
+            ('members', 'membercount', 'servermembercount'): self.membercount,
             ('boosts', 'boostcount', 'serverboostcount'): self.boosts,
             ('boostlevel', 'serverboostlevel', 'boosttier', 'serverboosttier'): self.boostlevel,
-            ('channel', 'channelmention'): self.channel,
+            ('channel', 'channelmention'): self.channelmention,
             ('channelname',): self.channelname,
-            ('member', 'membermention'): self.member,
+            ('member', 'membermention'): self.membermention,
             ('avatar', 'memberavatar', 'pfp', 'memberpfp'): self.avatar,
             ('memberusername', 'username'): self.memberusername,
             ('membername', 'name', 'displayname', 'memberdisplayname'): self.membername
@@ -81,11 +81,11 @@ class ScriptContext:
     # make a decorator that will add the function to self.repls
     # make it take an optional argument called aliases 
 
-    def server(self):
+    def servername(self):
         """Name of the current server"""
         return self.guild.name
 
-    def members(self):
+    def membercount(self):
         """Number of members in the current server"""
         return len(self.guild.members) 
 
@@ -97,7 +97,7 @@ class ScriptContext:
         """Boost level of the current server"""
         return self.guild.premium_tier
  
-    def channel(self):
+    def channelmention(self):
         """Mention of the current channel"""
         return self.channel.mention
 
@@ -105,7 +105,7 @@ class ScriptContext:
         """Name of the current channel"""
         return self.channel.name
 
-    def member(self):
+    def membermention(self):
         """Mention of the current member"""
         return self.member.mention
 
