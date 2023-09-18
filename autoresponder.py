@@ -7,9 +7,34 @@ import json
 import asyncio 
 import re 
 
+
+
+class RoleView(ui.View):
+
+    def __init__(self):
+        super().__init__()
+        self.ready = False 
+        self.roles = []
+        self.inter = None 
+
+    @ui.select(cls=ui.RoleSelect, min_values=0, max_values=None)
+    async def rolesel(self, inter, sel):
+        self.inter = inter 
+        self.roles = sel.values 
+        self.ready = True
+        self.stop()
+
+    @ui.button(label='Clear all roles')
+    async def clearbtn(self, inter, btn):
+        self.inter = inter 
+        self.roles = []
+        self.ready = True
+        self.stop()
+
+
 class AutoResponder:
 
-    def __init__(self, phrase, detection, guilds, wlusers, blusers, wlroles, blroles, wlchannels, blchannels, text, embed, autoemojis):
+    def __init__(self, phrase, detection, guilds, wlusers, blusers, wlroles, blroles, wlchannels, blchannels, text, embed, autoemojis, give_roles=None, remove_roles=None, delete_trigger=None, delete_response_after=None):
         self.phrase = phrase 
         self.detection = detection 
 
@@ -21,11 +46,16 @@ class AutoResponder:
         self.wlchannels = json.loads(wlchannels) if wlchannels else []
         self.blchannels = json.loads(blchannels) if blchannels else []
         self.text = text
-        if embed:
-            self.embed = json.loads(embed)
-        else:
-            self.embed = None 
+        self.embed = json.loads(embed) if embed else None
         self.autoemojis = json.loads(autoemojis) if autoemojis else []
+        self.give_roles = json.loads(give_roles) if give_roles else []
+        self.remove_roles = json.loads(remove_roles) if remove_roles else []
+        self.delete_trigger = delete_trigger if delete_trigger else False
+        self.delete_response_after = delete_response_after
+    
+    def __eq__(self, other):
+        return self.phrase == other.phrase
+    
 
 class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autoresponder stuff (admin only)"):
     def __init__(self, bot):
@@ -41,7 +71,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
 
                 for row in rows:
                     self.ars.append(
-                        AutoResponder(*[row[i] for i in range(1, 13)])
+                        AutoResponder(*[row[i] for i in range(1, 17)])
                     )
 
     async def cog_check(self, ctx):
@@ -86,13 +116,26 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             if ar.autoemojis:
                 for emoji in ar.autoemojis:
                     await msg.add_reaction(emoji)
-                continue  
-
-            if ar.embed:
-                embed = discord.Embed.from_dict(ar.embed)
             else:
-                embed = None
-            await msg.channel.send(ar.text, embed=embed)
+                if ar.embed:
+                    embed = discord.Embed.from_dict(ar.embed)
+                else:
+                    embed = None
+            
+                await msg.channel.send(ar.text, embed=embed, delete_after=ar.delete_response_after)
+            
+            for roleid in ar.give_roles:
+                role = msg.guild.get_role(roleid) 
+                if role not in msg.author.roles:
+                    await msg.author.add_roles(role)
+            for roleid in ar.remove_roles:
+                role = msg.guild.get_role(roleid) 
+                if role in msg.author.roles:
+                    await msg.author.remove_roles(role)
+
+            if ar.delete_trigger:
+                await msg.delete()
+
 
     @commands.command()
     async def addar(self, ctx, *, phrase):
@@ -186,6 +229,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             await msg.delete()
             return
         
+        
         if view2.choice == 'message':
             
             def check(m):
@@ -200,13 +244,13 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
 
             view = EmbedEditor(self.bot, ctx.author, timeout=None)
             if text is None:
-                await ctx.send("Please use the menu to create an embed.", view=view)
+                temp = await ctx.send("Please use the menu to create an embed.", view=view)
                 await view.wait()
             else:
                 def check(m):
                     return m.author == ctx.author and m.channel == ctx.channel and m.content.lower() == 'skip'
                 
-                await ctx.send("Please use the menu to create an embed, or type `skip` to skip.", view=view)
+                temp = await ctx.send("Please use the menu to create an embed, or type `skip` to skip.", view=view)
                 task1 = self.bot.wait_for('message', check=check)
                 task2 = view.wait()
                 tasks = [task1, task2]
@@ -214,6 +258,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 for task in pending:
                     task.cancel()
 
+            await temp.delete()
             embed = None 
             if view.ready:
                 embed = json.dumps(view.current_embed.to_dict())
@@ -276,7 +321,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             async def interaction_check(self, interaction):
                 return interaction.user == ctx.author 
 
-            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['allow', 'deny']])        
+            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['whitelist', 'blacklist', 'roles given', 'roles removed', 'trigger deletion', 'response deletion']])        
             async def allowtype(self, inter, sel):
                 self.choice = sel.values[0]
                 self.inter = inter 
@@ -291,11 +336,103 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             await msg.delete()
             return
 
-        if view.choice == 'allow':
+        if view.choice == 'whitelist':
             await self.allowar(ctx, view.inter, phrase=phrase)
-        elif view.choice == 'deny':
+        elif view.choice == 'blacklist':
             await self.denyar(ctx, view.inter, phrase=phrase)
+        elif view.choice == 'roles given':
+            view2 = RoleView()
+            await view.inter.response.edit_message(content='Please select all the roles to give (overrides old settings).', view=view2)
+            await view2.wait()
+            if not view2.ready:
+                return 
+            roleids = [r.id for r in view2.roles]
+            self.ars.remove(ar)
+            ar.give_roles = roleids
+            self.ars.append(ar)
+            query = 'UPDATE ars SET give_roles = ? WHERE phrase = ?'
+            await self.bot.db.execute(query, json.dumps(roleids), phrase)
+            await view2.inter.response.edit_message(content='Edited your autoresponder!', view=None)
+        elif view.choice == 'roles removed':
+            view2 = RoleView()
+            await view.inter.response.edit_message(content='Please select all the roles to remove (overrides old settings).', view=view2)
+            await view2.wait()
+            if not view2.ready:
+                return 
+            roleids = [r.id for r in view2.roles]
+            self.ars.remove(ar)
+            ar.remove_roles = roleids
+            self.ars.append(ar)
+            query = 'UPDATE ars SET remove_roles = ? WHERE phrase = ?'
+            await self.bot.db.execute(query, json.dumps(roleids), phrase)
+            await view2.inter.response.edit_message(content='Edited your autoresponder!', view=None)
+        elif view.choice == 'trigger deletion':
 
+            class TriggerView(ui.View):
+
+                def __init__(self):
+                    super().__init__()
+                    self.inter = None 
+                    self.ready = False 
+                    self.choice = None 
+
+                @ui.button(label='Delete trigger')
+                async def b1(self, inter, button):
+                    self.inter = inter 
+                    self.ready = True 
+                    self.choice = True
+                    self.stop()
+
+                @ui.button(label='Don\'t delete trigger', row=1)
+                async def b2(self, inter, button):
+                    self.inter = inter 
+                    self.ready = True 
+                    self.choice = False
+                    self.stop()
+
+            view2 = TriggerView()
+            await view.inter.response.send_message('Choose an option', view=view2)
+            await view2.wait()
+            if not view2.ready:
+                return 
+            self.ars.remove(ar)
+            ar.delete_trigger = view2.choice 
+            self.ars.append(ar)
+            query = 'UPDATE ars SET delete_trigger = ? WHERE phrase = ?'
+            await self.bot.db.execute(query, int(view2.choice), phrase)
+            await view2.inter.response.edit_message(content='Edited your autoresponder!', view=None)
+        elif view.choice == 'response deletion':
+            def check(m):
+                return m.channel == ctx.channel and m.author == ctx.author 
+            first = True 
+            while True:
+                if first:
+                    temp = await view.inter.response.send_message('Enter the number of seconds you want the response to last before being deleted. 0 means it won\'t be deleted.')
+                    first = False 
+                else:
+                    temp = await ctx.send('Please enter a valid number:')
+                try:
+                    msg = await self.bot.wait_for('message', check=check, timeout=180)
+                except asyncio.TimeoutError:
+                    await temp.delete()
+                    return
+                try:
+                    delay = int(msg.content)
+                    break
+                except ValueError:
+                    continue
+
+            if delay <= 0:
+                delay = None
+            self.ars.remove(ar)
+            ar.delete_response_after = delay 
+            self.ars.append(ar)
+            query = 'UPDATE ars SET delete_response_after = ? WHERE phrase = ?' 
+            await self.bot.db.execute(query, delay, phrase)
+            await ctx.send('Edited your autoresponder!')
+
+
+            
     async def getemojis(self, ctx, inter):
         temp = await inter.response.send_message('Please send one or more emojis, separated by spaces.')
 
@@ -371,12 +508,19 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             async def interaction_check(self, interaction):
                 return interaction.user == ctx.author 
 
-            @ui.select(cls=c, max_values=25, channel_types=[discord.ChannelType.text])
+            @ui.select(cls=c, min_values=0, max_values=25, channel_types=[discord.ChannelType.text])
             async def objselect(self, inter, sel):
                 self.ready = True 
                 self.inter = inter 
                 self.choices = sel.values 
                 self.stop() 
+
+            @ui.button(label='Clear all roles')
+            async def clearbtn(self, inter, btn):
+                self.inter = inter 
+                self.choices = []
+                self.ready = True
+                self.stop()
 
         view2 = View2()
         await view.inter.response.send_message(f'Please choose the {view.choice}s to allow:', view=view2) 
