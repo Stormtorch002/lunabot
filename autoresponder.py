@@ -246,10 +246,10 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 return m.author == ctx.author and m.channel == ctx.channel and m.content.lower() == 'skip'
             if text is None:
                 skippable = False
-                temp = await ctx.send("Please enter the name of an embed.", view=view)
+                temp = await ctx.send("Please enter the name of an embed.")
             else:
                 skippable = True
-                temp = await ctx.send("Please enter the name of an embed, or type `skip` to skip.", view=view)
+                temp = await ctx.send("Please enter the name of an embed, or type `skip` to skip.")
 
             try:
                 msg2 = await self.bot.wait_for('message', check=check, timeout=180)
