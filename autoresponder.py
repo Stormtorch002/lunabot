@@ -242,29 +242,37 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             else:
                 text = resp.content
 
-            view = EmbedEditor(self.bot, ctx.author, timeout=None)
+            def check(m):
+                return m.author == ctx.author and m.channel == ctx.channel and m.content.lower() == 'skip'
             if text is None:
-                temp = await ctx.send("Please use the menu to create an embed.", view=view)
-                await view.wait()
+                skippable = False
+                temp = await ctx.send("Please enter the name of an embed.", view=view)
             else:
-                def check(m):
-                    return m.author == ctx.author and m.channel == ctx.channel and m.content.lower() == 'skip'
-                
-                temp = await ctx.send("Please use the menu to create an embed, or type `skip` to skip.", view=view)
-                task1 = self.bot.wait_for('message', check=check)
-                task2 = view.wait()
-                tasks = [task1, task2]
-                done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-                for task in pending:
-                    task.cancel()
+                skippable = True
+                temp = await ctx.send("Please enter the name of an embed, or type `skip` to skip.", view=view)
 
-            await temp.delete()
-            embed = None 
-            if view.ready:
-                embed = json.dumps(view.current_embed.to_dict())
+            try:
+                msg2 = await self.bot.wait_for('message', check=check, timeout=180)
+            except asyncio.TimeoutError:
+                await temp.delete()
+                return 
+            
+            if not skippable:
+                query = 'SELECT embed FROM embeds WHERE name = ?'
+                val = await self.bot.db.fetchval(query, msg2.content.lower())
+                if val is None:
+                    return await ctx.send('No embed with that name found.')
+                embed = val 
             else:
-                if text is None:
-                    return await ctx.send('Autoresponder cancelled.')
+                if msg2.content.lower() == 'skip':
+                    embed = None 
+                else:
+                    query = 'SELECT embed FROM embeds WHERE name = ?'
+                    val = await self.bot.db.fetchval(query, msg2.content.lower())
+                    if val is None:
+                        return await ctx.send('No embed with that name found.')
+                    embed = val 
+
             self.ars.append(
                 AutoResponder(phrase.lower(), choice, json.dumps(guild_ids), '[]', '[]', '[]', '[]', '[]', '[]', text, embed, [])
             )
