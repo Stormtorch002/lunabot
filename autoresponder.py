@@ -243,7 +243,8 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 text = resp.content
 
             def check(m):
-                return m.author == ctx.author and m.channel == ctx.channel and m.content.lower() == 'skip'
+                return m.author == ctx.author and m.channel == ctx.channel
+
             if text is None:
                 skippable = False
                 temp = await ctx.send("Please enter the name of an embed.")
