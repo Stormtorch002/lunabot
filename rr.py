@@ -1,4 +1,5 @@
 from discord import app_commands 
+import asyncio
 from discord.ext import commands, tasks 
 import discord 
 import time 
@@ -32,24 +33,62 @@ class RRView1(ui.View):
         self.embedname = None 
 
         self.modal = None 
+        self.other_message_id = None
 
         super().__init__(timeout=None)
 
-        for option in options:
-            self.embedsel.add_option(label=option)
-    
     @ui.button(label='Add message text', style=ButtonStyle.green)
     async def addmsg(self, inter, button):
-        self.modal = TextModal(self.embed)
-        await inter.response.send_modal(self.modal)
-        await self.modal.wait()
-        self.message = str(self.modal.text)
+        def check(m):
+            return m.channel == inter.channel and m.author == inter.user
+
+        await inter.response.send_message('Enter the message text:')
+        try:
+            msg = await self.ctx.bot.wait_for('message', check=check, timeout=180)
+        except asyncio.TimeoutError:
+            await inter.followup.send('You took too long to respond, please try again.') 
+            return
+        self.message = msg.content
+        self.embed.set_field_at(0, name='Message Text', value=self.message)
+        await self.sent.edit(embed=self.embed)
     
-    @ui.select(placeholder='Choose an embed')
-    async def embedsel(self, inter, select):
-        self.embedname = select.values[0]
+    @ui.button(label='Add an embed')
+    async def embedbtn(self, inter, btn):
+        await inter.response.send_message('Enter the name of an embed:')
+        def check(m):
+            return m.channel == inter.channel and m.author == inter.user
+        try:
+            msg = await self.ctx.bot.wait_for('message', check=check, timeout=180)
+        except asyncio.TimeoutError:
+            await inter.followup.send('You took too long to respond, please try again.') 
+            return
+        
+        query = 'SELECT embed FROM embeds WHERE name = ?'
+        val = await self.ctx.bot.db.fetchval(query, msg.content.lower())
+        if val is None:
+            await inter.response.send_message('No embed with that name found.')
+            return
+
+        self.embedname = msg.content.lower()
         self.embed.set_field_at(1, name='Embed', value=self.embedname)
-        await inter.response.edit_message(embed=self.embed)
+        await self.sent.edit(embed=self.embed)
+
+    @ui.button(label='Use an existing message', style=discord.ButtonStyle.blurple)
+    async def useexisting(self, inter, btn):
+        await inter.response.send_message('Enter the message ID:')
+
+        def check(m):
+            return m.channel == inter.channel and m.author == inter.user 
+
+        try:
+            msg = await inter.client.wait_for('message', check=check, timeout=180)
+        except asyncio.TimeoutError:
+            await inter.followup.send('You took too long to respond, please try again.') 
+            return 
+        
+        self.other_message_id = msg.content 
+        self.ready = True 
+        self.stop() 
 
     @ui.button(label='Submit', style=ButtonStyle.green)
     async def submit(self, inter, button):
@@ -193,6 +232,7 @@ class TimeDenyModal(ui.Modal, title='When user hasn\'t stayed long enough'):
         self.embed.set_field_at(1, name='Required Time', value=f'{gg}\n\n**:white_check_mark: Has deny message**')
         self.denymsg = str(self.text)
         await inter.response.edit_message(embed=self.embed)
+
 class RRView3(ui.View):
     def __init__(self, ctx, embed):
         super().__init__(timeout=None)
@@ -274,17 +314,19 @@ class RR(commands.Cog, name='Reaction Roles'):
         options = [row[0] for row in rows]
 
         view1 = RRView1(ctx, embed, options)
-        await ctx.send(embed=embed, view=view1)
+        view1.sent = await ctx.send(embed=embed, view=view1)
         await view1.wait()
 
         if not view1.ready:
+            await view1.sent.delete()
             return 
-        
-        embedout = None 
-        if view1.embedname:
-            query = 'SELECT embed FROM embeds WHERE name = ?'
-            val = await self.bot.db.fetchval(query, view1.embedname)
-            embedout = discord.Embed.from_dict(json.loads(val))
+        await view1.sent.edit(view=None)
+
+        if view1.other_message_id is not None:
+            try:
+                msg = await channel.fetch_message(int(view1.other_message_id))
+            except (discord.NotFound, ValueError):
+                return await ctx.send('Message not found.')
         
         await ctx.send(textwrap.dedent("""
         Enter each emoji and role pair for each reaction, on a different line. For example:
@@ -323,12 +365,23 @@ class RR(commands.Cog, name='Reaction Roles'):
         await ctx.send(embed=embed, view=view3)
         await view3.wait()
 
-        msgout = await channel.send(view1.message, embed=embedout)
+        if view1.other_message_id is None:
+            embedout = None 
+            if view1.embedname:
+                query = 'SELECT embed FROM embeds WHERE name = ?'
+                val = await self.bot.db.fetchval(query, view1.embedname)
+                embedout = discord.Embed.from_dict(json.loads(val))
+
+            rrmsg = await channel.send(view1.message, embed=embedout)
+        else:
+            rrmsg = msg 
+        
         for emoji in stuff:
-            await msgout.add_reaction(emoji)
+            await rrmsg.add_reaction(emoji)
+        msgid = rrmsg.id
 
         query = 'INSERT INTO rrs (channel_id, message_id, map, max_sel, req_role_id, no_role_msg, req_time, no_time_msg) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-        await self.bot.db.execute(query, channel.id, msgout.id, json.dumps(stuff), view2.limit, view3.role.id if view3.role else None, view3.role_denymsg, view3.seconds, view3.time_denymsg)
+        await self.bot.db.execute(query, channel.id, msgid, json.dumps(stuff), view2.limit, view3.role.id if view3.role else None, view3.role_denymsg, view3.seconds, view3.time_denymsg)
         await ctx.send('Successfully added reaction role :white_check_mark:')
 
     @commands.hybrid_command()

@@ -10,14 +10,14 @@ import math
 
 
 def get_xp(lvl: int):
+    return 50*lvl*lvl 
     lvl += 1
     xp = 25 * lvl * (lvl - 1)
     return xp
 
 
 def get_level(xp: int):
-    lvl = int((0.5 + math.sqrt(25 + 4 * xp)) / 10)
-    return lvl
+    return int(math.sqrt(xp / 50))
 
 
 class Levels(commands.Cog):
