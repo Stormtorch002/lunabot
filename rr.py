@@ -324,7 +324,7 @@ class RR(commands.Cog, name='Reaction Roles'):
 
         if view1.other_message_id is not None:
             try:
-                msg = await channel.fetch_message(int(view1.other_message_id))
+                fetchedmsg = await channel.fetch_message(int(view1.other_message_id))
             except (discord.NotFound, ValueError):
                 return await ctx.send('Message not found.')
         
@@ -374,7 +374,7 @@ class RR(commands.Cog, name='Reaction Roles'):
 
             rrmsg = await channel.send(view1.message, embed=embedout)
         else:
-            rrmsg = msg 
+            rrmsg = fetchedmsg 
         
         for emoji in stuff:
             await rrmsg.add_reaction(emoji)
