@@ -133,6 +133,21 @@ class Automessages(commands.Cog):
         query = 'DELETE FROM ams WHERE name = ?'
         await self.bot.db.execute(query, name)
         await ctx.send('Deleted your automessage!', ephemeral=True)
+    
+    @commands.hybrid_command()
+    async def listams(self, ctx):
+        query = 'SELECT name, channel_id FROM ams'
+        rows = await self.bot.db.fetch(query)
+        if not rows:
+            return await ctx.send('No automessages found.')
+        embed = discord.Embed(color=0xcab7ff, title='Automessages')
+        fields = []
+        for row in rows:
+            channel = self.bot.get_channel(row[1])
+            fields.append(f'`row[0]` in {channel.mention}')
+        embed.description = '\n'.join(fields)
+        await ctx.send(embed=embed)
+
 
         
 async def setup(bot):
