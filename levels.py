@@ -172,13 +172,12 @@ class Levels(commands.Cog):
     async def lb(self, ctx):
         """Shows the XP leaderboard."""
 
-        sql = 'SELECT user_id, total_xp FROM xp ORDER BY total_xp DESC'
-        res = await self.bot.db.fetch(sql)
+        res = sorted(self.xp_cache.items(), key=lambda x: x[1], reverse=True)
 
         i = 0
         while i < len(res):
             row = res[i]
-            temp = ctx.guild.get_member(row['user_id'])
+            temp = ctx.guild.get_member(row[0])
             if temp is None:
                 res.pop(i)
             else:
@@ -197,7 +196,7 @@ class Levels(commands.Cog):
             embed.set_footer(text=f'Page {page}/{pages}')
 
             for row in rows:
-                member, xp = ctx.guild.get_member(row['user_id']), row['total_xp']
+                member, xp = ctx.guild.get_member(row[0]), row[1]
                 lvl, name = get_level(xp), f'#{rank}'
 
                 value = f'{member.mention}\n**Level:** `{lvl}`\n**Total XP:** `{xp}`'
