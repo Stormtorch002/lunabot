@@ -11,9 +11,6 @@ import math
 
 def get_xp(lvl: int):
     return 50*lvl*lvl 
-    lvl += 1
-    xp = 25 * lvl * (lvl - 1)
-    return xp
 
 
 def get_level(xp: int):
@@ -118,7 +115,7 @@ class Levels(commands.Cog):
             return
         if message.channel.id not in self.blacklisted_channels and not message.author.bot:
             if message.author.id not in self.xp_cooldowns or self.xp_cooldowns[message.author.id] < time.time():
-                increment = random.randint(6, 9)
+                increment = random.randint(10, 20)
                 old = self.xp_cache.get(message.author.id)
                 if old is None:
                     self.xp_cache[message.author.id] = increment 

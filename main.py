@@ -28,7 +28,9 @@ async def start():
     await bot.load_extension("bdays")
     await bot.load_extension("events")
     await bot.load_extension("embeds")
-    
+    await bot.load_extension("rr")
+    await bot.load_extension("automsg")
+    await bot.load_extension("levels")
 
 
 @bot.command()
