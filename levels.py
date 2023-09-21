@@ -53,7 +53,11 @@ class Levels(commands.Cog):
             1106819476093149274,
             899513989061554257
         ]
-
+        self.xp_multipliers = {
+            913086743035658292: 1.2,
+            1060750259980079195: 1.15,
+            981252193132884109: 1.1
+        }
         self.xp_cache = {} 
 
     async def cog_load(self):
@@ -71,8 +75,7 @@ class Levels(commands.Cog):
                     '''
             await self.bot.db.execute(query, user_id, total_xp, total_xp) 
 
-    async def add_leveled_roles(self, message, old_level, new_level):
-        authorroles = [role.id for role in message.author.roles]
+    async def add_leveled_roles(self, message, old_level, new_level, authorroles):
         roles = {lvl: self.leveled_roles[lvl] for lvl in self.leveled_roles if lvl <= new_level}
         if roles:
             keys = list(roles.keys())
@@ -115,7 +118,12 @@ class Levels(commands.Cog):
             return
         if message.channel.id not in self.blacklisted_channels and not message.author.bot:
             if message.author.id not in self.xp_cooldowns or self.xp_cooldowns[message.author.id] < time.time():
-                increment = random.randint(10, 20)
+                authorroles = [role.id for role in message.author.roles]
+                increment = random.randint(20, 25)
+                for role_id, multi in self.xp_multipliers:
+                    if role_id in authorroles:
+                        increment *= multi 
+                increment = round(increment)
                 old = self.xp_cache.get(message.author.id)
                 if old is None:
                     self.xp_cache[message.author.id] = increment 
@@ -125,7 +133,7 @@ class Levels(commands.Cog):
                     self.xp_cache[message.author.id] += increment
                     new = old + increment 
                 new_level, old_level = get_level(new), get_level(old)
-                await self.add_leveled_roles(message, old_level, new_level)
+                await self.add_leveled_roles(message, old_level, new_level, authorroles)
 
     @commands.hybrid_command(name='rank')
     async def _rank(self, ctx, *, member: discord.Member = None):
