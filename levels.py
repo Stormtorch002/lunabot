@@ -115,6 +115,7 @@ class Levels(commands.Cog):
         rows = await self.bot.db.fetch(query)
         for row in rows:
             self.xp_cache[row[0]] = row[1]
+        return
         rows = await self.bot.db.fetch('select user_id, count from msg_count')
         for row in rows:
             self.msg_counts[row[0]] = row[1]
