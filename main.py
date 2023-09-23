@@ -31,6 +31,7 @@ async def start():
     await bot.load_extension("rr")
     await bot.load_extension("automsg")
     await bot.load_extension("levels")
+    await bot.load_extension('misc')
 
 
 @bot.command()
