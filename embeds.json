@@ -43,5 +43,11 @@
         "type": "rich",
         "description": "> \u207a <a:Lumi_arrow_R:927733713163403344>\ufe52**Come help us grow**\ufe52\u207a\n             \u2027  \u2574\u2027  \u2574\u2027  \u2574\u2027\n> \u2661\ufe52\ufe52**Psst!** It's time to bump with Disboard again; just type `/bump` to \"bump\" our server to the top of [Disboard's website!](https://disboard.org/) This helps us gain more exposure so more people can join our lovely family. <a:LCD_cute_hearts:1127849485289136138> \u273f\u2740\n             \u2027  \u2574\u2027  \u2574\u2027  \u2574\u2027",
         "title": "\u2740\u318d\u318dBump Time\ufe57\u207a \u208d <a:LC_star_jump_spin:1147776861154316328> \u208e"
+    },
+    "topic": {
+        "color": 13285375,
+        "type": "rich",
+        "description": "> \u207a <a:Lumi_heart_point:917958056409706497>\ufe52**Here's a topic...**\ufe52\u207a\n> <:LC_reply_F2U:1081275742765195355> {q}? \u273f\u2740\n             \u2027  \u2574\u2027  \u2574\u2027  \u2574\u2027",
+        "title": "\u2740\u318d\u318dChat With Us\ufe57\u207a \u208d <a:LCD_flower_spin:1147757953064128512> \u208e"
     }
 }

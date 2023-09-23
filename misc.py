@@ -1,6 +1,7 @@
 from discord.ext import commands
 import json 
 import random 
+import discord 
 
 
 class Misc(commands.Cog):
@@ -10,11 +11,15 @@ class Misc(commands.Cog):
 
         with open('topics.json') as f:
             self.topics = json.load(f)
+        with open('embeds.json') as f:
+            self.embedjson = json.load(f)['topic']
 
     
     @commands.hybrid_command()
     async def topic(self, ctx):
-        await ctx.send(f'> {random.choice(self.topics)}')
+        embed = discord.Embed.from_dict(self.embedjson)
+        embed.description = embed.description.replace('{q}', random.choice(self.topics))
+        await ctx.send(embed=embed)
 
 
 async def setup(bot):
