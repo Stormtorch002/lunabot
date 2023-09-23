@@ -85,9 +85,9 @@ class Levels(commands.Cog):
                 msgs = self.msg_counts[rows[i][0]]
             except KeyError:
                 msgs = 'placeholder'
-            embed.description = embed.description.replace(f'{{ping}}{i}', f'<@{rows[i][0]}>')
-            embed.description = embed.description.replace(f'{{xp}}{i}', f'{rows[i][1]}')
-            embed.description = embed.description.replace(f'{{msgs}}{i}', f'{msgs}')
+            embed.description = embed.description.replace(f'{{ping{i}}}', f'<@{rows[i][0]}>')
+            embed.description = embed.description.replace(f'{{xp{i}}}', f'{rows[i][1]}')
+            embed.description = embed.description.replace(f'{{msgs{i}}}', f'{msgs}')
         
         embed2 = discord.Embed.from_dict(data['weekly_reset'])
         this_sunday = discord.utils.utcnow()
