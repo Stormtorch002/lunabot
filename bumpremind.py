@@ -10,7 +10,7 @@ class BumpRemind(commands.Cog):
     def __init__(self, bot):
         self.bot = bot 
         with open('embeds.json') as f:
-            self.embed = json.load(f)['bump_remind']
+            self.embed = discord.Embed.from_dict(json.load(f)['bump_remind'])
         self.channel_id = 899112780840468561
         self.disboard_id = 302050872383242240
  
