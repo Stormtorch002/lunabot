@@ -13,7 +13,7 @@ class BumpRemind(commands.Cog):
             self.embed = json.load(f)['bump_remind']
         self.channel_id = 899112780840468561
         self.disboard_id = 302050872383242240
-
+ 
     async def cog_load(self):
         query = 'SELECT nextbump FROM bumpremind'
         val = await self.bot.db.fetchval(query)
