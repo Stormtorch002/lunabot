@@ -78,7 +78,7 @@ class Levels(commands.Cog):
         with open('embeds.json', encoding='utf8') as f:
             data = json.load(f)
         
-        embed = discord.Embed.from_dict(data['weekly_xp'])
+        embed = discord.Embed.from_dict(data['weekly_lb'])
 
         for i in range(3):
             msgs = self.msg_counts[rows[i][0]]
