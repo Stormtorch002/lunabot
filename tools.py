@@ -62,8 +62,8 @@ class Tools(commands.Cog, description='storchs tools'):
         message = await channel.fetch_message(message_id)
         embed = message.embeds[0].to_dict()
 
-        if 'footer' in embed:
-            embed.pop('footer')
+        # if 'footer' in embed:
+            # embed.pop('footer')
             
         data = json.dumps(embed, indent=4)
         await ctx.send(f'```json\n{data}```')
