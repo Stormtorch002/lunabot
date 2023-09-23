@@ -81,7 +81,10 @@ class Levels(commands.Cog):
         embed = discord.Embed.from_dict(data['weekly_lb'])
 
         for i in range(3):
-            msgs = self.msg_counts[rows[i][0]]
+            try:
+                msgs = self.msg_counts[rows[i][0]]
+            except KeyError:
+                msgs = 'placeholder'
             embed.description = embed.description.replace(f'{{ping}}{i}', f'<@{rows[i][0]}>')
             embed.description = embed.description.replace(f'{{xp}}{i}', f'{rows[i][1]}')
             embed.description = embed.description.replace(f'{{msgs}}{i}', f'{msgs}')

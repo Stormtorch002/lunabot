@@ -8,13 +8,15 @@ from utils.converters import TimeConverter
 import asyncio 
 
 
-async def task(channel, text, embed, interval, lastsent):
+async def task(bot, channel, text, embed, interval, lastsent, name):
     sincelast = rn() - lastsent
 
     if sincelast < interval:
         await asyncio.sleep(interval - sincelast)
     while True:
         await channel.send(text, embed=embed)
+        query = 'UPDATE ams SET lastsent = ? WHERE name = ?'
+        await bot.db.execute(query, rn(), name) 
         await asyncio.sleep(interval)
         
 
@@ -37,7 +39,7 @@ class Automessages(commands.Cog):
             lastsent = row[4]
             name = row[5]
             
-            taskobj = self.bot.loop.create_task(task(channel, text, embed, interval, lastsent))
+            taskobj = self.bot.loop.create_task(task(self.bot, channel, text, embed, interval, lastsent, name))
             self.tasks[name] = taskobj 
 
     async def cog_unload(self):
