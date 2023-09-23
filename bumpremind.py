@@ -3,6 +3,7 @@ import time
 import json
 import discord  
 import datetime
+import logging 
 
 
 class BumpRemind(commands.Cog):
@@ -33,6 +34,7 @@ class BumpRemind(commands.Cog):
     async def task(self, end_time):
         query = 'UPDATE bumpremind SET nextbump = ?'
         await self.bot.db.execute(query, int(end_time.timestamp()))
+        logging.info(f'Next bump remind at {end_time}')
         await discord.utils.sleep_until(end_time)
         await self.send()
 
