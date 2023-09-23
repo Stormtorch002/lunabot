@@ -1,4 +1,5 @@
-from discord.ext import commands
+from discord.ext import commands, tasks
+import json 
 from num2words import num2words
 from io import BytesIO
 from utils.image import generate_rank_card
@@ -6,6 +7,7 @@ from utils.views import RoboPages, AutoSource
 import time
 import random
 import discord
+import datetime
 import math
 
 
@@ -59,12 +61,63 @@ class Levels(commands.Cog):
             981252193132884109: 1.1
         }
         self.xp_cache = {} 
+        self.msg_counts = {}
+        self.weekly_xp.start()
+
+    # make a loop that runs every sunday at 1am 
+    async def weekly_xp(self):
+        query = '''SELECT xp.user_id, xp.total_xp - xp_copy.total_xp AS diff ORDER BY diff DESC LIMIT 3'''
+        rows = await self.bot.db.fetch(query)
+    
+
+        with open('embeds.json', encoding='utf8') as f:
+            data = json.load(f)
+        
+        embed = discord.Embed.from_dict(data['weekly_xp'])
+
+        for i in range(3):
+            msgs = self.msg_counts[rows[i][0]]
+            embed.description = embed.description.replace(f'{{ping}}{i}', f'<@{rows[i][0]}>')
+            embed.description = embed.description.replace(f'{{xp}}{i}', f'{rows[i][1]}')
+            embed.description = embed.description.replace(f'{{msgs}}{i}', f'{msgs}')
+        
+        embed2 = discord.Embed.from_dict(data['weekly_reset'])
+        this_sunday = discord.utils.utcnow()
+        next_sunday = this_sunday + datetime.timedelta(days=7)
+        embed2.description = embed2.description.replace('{this_sunday}', discord.utils.format_dt(this_sunday, 'd'))
+        embed2.description = embed2.description.replace('{next_sunday}', discord.utils.format_dt(next_sunday, 'd'))
+
+        channel = self.bot.get_channel(899725913586032701)
+        await channel.send(embed)
+        await channel.send(embed2)
+        
+        await self.freeze_lb()
+
+    @tasks.loop(hours=168)
+    async def weekly_xp_task(self):
+        await self.weekly_xp()
+        # select top 3 users order by the difference between xp and xp_copy 
+            
+    @weekly_xp_task.before_loop
+    async def before_weekly_xp(self):
+        # sleep until next sunday at 1am
+        now = datetime.datetime.now()
+        if now.hour == 0:
+            target = now.replace(hour=1, minute=0, second=0, microsecond=0)
+        else:
+            target = now.replace(hour=1, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
+        while target.weekday() != 6:
+            target += datetime.timedelta(days=1)
+        await discord.utils.sleep_until(target)
 
     async def cog_load(self):
         query = 'select user_id, total_xp from xp'
         rows = await self.bot.db.fetch(query)
         for row in rows:
             self.xp_cache[row[0]] = row[1]
+        rows = await self.bot.db.fetch('select user_id, count from msg_count')
+        for row in rows:
+            self.msg_counts[row[0]] = row[1]
 
     async def cog_unload(self):
         for user_id, total_xp in self.xp_cache.items():
@@ -74,6 +127,21 @@ class Levels(commands.Cog):
                         DO UPDATE SET total_xp = ? 
                     '''
             await self.bot.db.execute(query, user_id, total_xp, total_xp) 
+        for user_id, count in self.msg_counts.items():
+            query = '''INSERT INTO msg_count (user_id, count) 
+                        VALUES (?, ?)
+                        ON CONFLICT (user_id)
+                        DO UPDATE SET count = ? 
+                    '''
+            await self.bot.db.execute(query, user_id, count, count)
+    
+    async def freeze_lb(self):
+        await self.bot.db.execute('DROP TABLE xp_copy')
+        # make a copy of the xp table
+        await self.bot.db.execute('CREATE TABLE xp_copy AS SELECT * FROM xp')
+        await self.bot.db.execute('DROP TABLE msg_count')
+        await self.bot.db.execute('CREATE TABLE msg_count (user_id INTEGER PRIMARY KEY, count INTEGER)')
+        self.msg_counts = {}
 
     async def add_leveled_roles(self, message, old_level, new_level, authorroles):
         roles = {lvl: self.leveled_roles[lvl] for lvl in self.leveled_roles if lvl <= new_level}
@@ -117,6 +185,8 @@ class Levels(commands.Cog):
         if not message.guild:
             return
         if message.channel.id not in self.blacklisted_channels and not message.author.bot:
+            self.msg_counts[message.author.id] = self.msg_counts.get(message.author.id, 0) + 1
+
             if message.author.id not in self.xp_cooldowns or self.xp_cooldowns[message.author.id] < time.time():
                 authorroles = [role.id for role in message.author.roles]
                 increment = random.randint(20, 25)

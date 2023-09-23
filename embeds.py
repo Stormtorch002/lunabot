@@ -103,27 +103,25 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
     async def show(self, ctx, *, name):
         async with self.bot.pool.acquire() as conn:
             async with conn.cursor() as cur:
-                if not ctx.author.guild_permissions.administrator:
-                    query = 'SELECT embed FROM embeds WHERE name = ? AND creator_id = ?'
-                    await cur.execute(query, (name.lower(), ctx.author.id))
-                    x = await cur.fetchone()
-                    if not x:
-                        await ctx.send('You do not own an embed with that name.', ephemeral=True)
-                        return 
-        
-                    embed = discord.Embed.from_dict(json.loads(x[0]))
-                    await ctx.send(embed=embed)
+                query = 'SELECT embed FROM embeds WHERE name = ?'
+                await cur.execute(query, (name.lower(),))
+                x = await cur.fetchone()
+                if not x:
+                    await ctx.send('You do not own an embed with that name.', ephemeral=True)
+                    return 
+    
+                embed = discord.Embed.from_dict(json.loads(x[0]))
+                await ctx.send(embed=embed)
     
     @embed.command(name='list')
     @app_commands.default_permissions()
     async def _list(self, ctx):
         async with self.bot.pool.acquire() as conn:
             async with conn.cursor() as cur:
-                if not ctx.author.guild_permissions.administrator:
-                    query = 'SELECT name FROM embeds WHERE creator_id = ?'
-                    await cur.execute(query, (ctx.author.id,))
-                    x = await cur.fetchall()
-        
+                query = 'SELECT name FROM embeds'
+                await cur.execute(query)
+                x = await cur.fetchall()
+
         if len(x) == 0:
             await ctx.send('You have created no embeds.', ephemeral=True)
             return 
