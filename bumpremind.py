@@ -17,12 +17,11 @@ class BumpRemind(commands.Cog):
     async def cog_load(self):
         query = 'SELECT nextbump FROM bumpremind'
         val = await self.bot.db.fetchval(query)
-        if val:
-            if val > time.time():
-                end_time = datetime.datetime.fromtimestamp(val)
-                self.bot.loop.create_task(self.task(end_time))
-            else:
-                await self.send()
+        if val > time.time():
+            end_time = datetime.datetime.fromtimestamp(val)
+            self.bot.loop.create_task(self.task(end_time))
+        else:
+            await self.send()
 
     async def send(self):
         channel = self.bot.get_channel(self.channel_id)
