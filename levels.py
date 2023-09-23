@@ -69,6 +69,7 @@ class Levels(commands.Cog):
         query = '''SELECT xp.user_id, (xp.total_xp - xp_copy.total_xp) AS diff
                     FROM xp
                     INNER JOIN xp_copy ON xp.user_id = xp_copy.user_id
+                    WHERE xp.user_id != 496225545529327616
                     ORDER BY diff DESC
                     LIMIT 3;
                 '''
