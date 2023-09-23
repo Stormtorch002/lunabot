@@ -96,8 +96,8 @@ class Levels(commands.Cog):
         embed2.description = embed2.description.replace('{next_sunday}', discord.utils.format_dt(next_sunday, 'd'))
 
         channel = self.bot.get_channel(899725913586032701)
-        await channel.send(embed)
-        await channel.send(embed2)
+        await channel.send(embed=embed)
+        await channel.send(embed=embed2)
         
         await self.freeze_lb()
 
