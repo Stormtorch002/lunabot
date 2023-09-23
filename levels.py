@@ -117,6 +117,7 @@ class Levels(commands.Cog):
             target = now.replace(hour=1, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
         while target.weekday() != 6:
             target += datetime.timedelta(days=1)
+        print(target)
         await discord.utils.sleep_until(target)
 
     async def cog_load(self):
