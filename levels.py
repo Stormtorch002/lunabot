@@ -62,7 +62,7 @@ class Levels(commands.Cog):
         }
         self.xp_cache = {} 
         self.msg_counts = {}
-        self.weekly_xp.start()
+        self.weekly_xp_task.start()
 
     # make a loop that runs every sunday at 1am 
     async def weekly_xp(self):
@@ -190,7 +190,7 @@ class Levels(commands.Cog):
             if message.author.id not in self.xp_cooldowns or self.xp_cooldowns[message.author.id] < time.time():
                 authorroles = [role.id for role in message.author.roles]
                 increment = random.randint(20, 25)
-                for role_id, multi in self.xp_multipliers:
+                for role_id, multi in self.xp_multipliers.items():
                     if role_id in authorroles:
                         increment *= multi 
                 increment = round(increment)
