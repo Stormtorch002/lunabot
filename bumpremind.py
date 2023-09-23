@@ -32,7 +32,7 @@ class BumpRemind(commands.Cog):
 
     async def task(self, end_time):
         query = 'UPDATE bumpremind SET nextbump = ?'
-        await self.bot.db.execute(query, end_time.timestamp())
+        await self.bot.db.execute(query, int(end_time.timestamp()))
         await discord.utils.sleep_until(end_time)
         await self.send()
 
