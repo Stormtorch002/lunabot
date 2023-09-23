@@ -137,10 +137,10 @@ class Levels(commands.Cog):
             await self.bot.db.execute(query, user_id, count, count)
     
     async def freeze_lb(self):
-        await self.bot.db.execute('DROP TABLE xp_copy')
+        await self.bot.db.execute('DROP TABLE IF EXISTS xp_copy')
         # make a copy of the xp table
         await self.bot.db.execute('CREATE TABLE xp_copy AS SELECT * FROM xp')
-        await self.bot.db.execute('DROP TABLE msg_count')
+        await self.bot.db.execute('DROP TABLE IF EXISTS msg_count')
         await self.bot.db.execute('CREATE TABLE msg_count (user_id INTEGER PRIMARY KEY, count INTEGER)')
         self.msg_counts = {}
 
