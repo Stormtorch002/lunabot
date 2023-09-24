@@ -96,16 +96,16 @@ class Birthdays(commands.Cog, description="Set your birthday, see other birthday
                 if len(user_ids) == 0:
                     return 
                 
-        repl = {
-            '{name}': member.display_name,
-            '{mention}': member.mention,
-            '{username}': member.name,
-        }
         cog = self.bot.get_cog('Events')
 
         for row in user_ids:
             user_id = row[0]
             member = self.bot.get_member(user_id)
+            repl = {
+                '{name}': member.display_name,
+                '{mention}': member.mention,
+                '{username}': member.name,
+            }
             if not member:
                 continue 
 
