@@ -14,6 +14,12 @@ class Misc(commands.Cog):
         with open('embeds.json') as f:
             self.embedjson = json.load(f)['topic']
 
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        name = member.name
+        if len(name) > 28:
+            name = name[:28]
+        await member.edit(nick=f'✿❀﹕{name}﹕')
     
     @commands.hybrid_command()
     async def topic(self, ctx):

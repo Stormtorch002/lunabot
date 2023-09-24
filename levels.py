@@ -67,6 +67,7 @@ class Levels(commands.Cog):
 
     # make a loop that runs every sunday at 1am 
     async def weekly_xp(self):
+        await self.dump_xp()
         query = '''SELECT xp.user_id, (xp.total_xp - xp_copy.total_xp) AS diff
                     FROM xp
                     INNER JOIN xp_copy ON xp.user_id = xp_copy.user_id
@@ -130,7 +131,7 @@ class Levels(commands.Cog):
         for row in rows:
             self.msg_counts[row[0]] = row[1]
 
-    async def cog_unload(self):
+    async def dump_xp(self):
         for user_id, total_xp in self.xp_cache.items():
             query = '''INSERT INTO xp (user_id, "total_xp") 
                         VALUES (?, ?)
@@ -138,6 +139,9 @@ class Levels(commands.Cog):
                         DO UPDATE SET total_xp = ? 
                     '''
             await self.bot.db.execute(query, user_id, total_xp, total_xp) 
+
+    async def cog_unload(self):
+        await self.dump_xp()
         for user_id, count in self.msg_counts.items():
             query = '''INSERT INTO msg_count (user_id, count) 
                         VALUES (?, ?)

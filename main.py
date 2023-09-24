@@ -32,6 +32,7 @@ async def start():
     await bot.load_extension("automsg")
     await bot.load_extension("levels")
     await bot.load_extension('misc')
+    await bot.load_extension('bumpremind')
 
 
 @bot.command()
