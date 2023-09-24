@@ -1,4 +1,5 @@
 from discord.ext import commands, tasks
+from zoneinfo import ZoneInfo
 import json 
 from num2words import num2words
 from io import BytesIO
@@ -110,7 +111,7 @@ class Levels(commands.Cog):
     @weekly_xp_task.before_loop
     async def before_weekly_xp(self):
         # sleep until next sunday at 1am
-        now = datetime.datetime.now()
+        now = datetime.datetime.now().astimezone(ZoneInfo('US/Eastern'))
         if now.hour == 0:
             target = now.replace(hour=1, minute=0, second=0, microsecond=0)
         else:
