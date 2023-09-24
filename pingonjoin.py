@@ -14,7 +14,7 @@ class ChannelSelectView(ui.View):
     
     @ui.select(cls=ui.ChannelSelect, max_values=None)
     async def channelsel(self, inter, sel):
-        self.channels = sel 
+        self.channels = sel.values 
         self.ready = True 
         self.inter = inter 
         self.stop()

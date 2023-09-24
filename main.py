@@ -33,6 +33,7 @@ async def start():
     await bot.load_extension("levels")
     await bot.load_extension('misc')
     await bot.load_extension('bumpremind')
+    await bot.load_extension('pingonjoin')
 
 
 @bot.command()
