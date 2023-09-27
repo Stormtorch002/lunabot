@@ -2,6 +2,7 @@ from discord.ext import commands
 import json 
 import random 
 import discord 
+import asyncio 
 
 
 class Misc(commands.Cog):
@@ -19,6 +20,7 @@ class Misc(commands.Cog):
         name = member.display_name
         if len(name) > 28:
             name = name[:28]
+        await asyncio.sleep(1)
         await member.edit(nick=f'✿❀﹕{name}﹕')
     
     @commands.hybrid_command()
