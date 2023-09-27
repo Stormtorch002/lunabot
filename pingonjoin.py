@@ -61,7 +61,7 @@ class PingOnJoin(commands.Cog):
             return
         await self.bot.db.execute('delete from pingonjoin where guild_id = ?', ctx.guild.id)
         for channel in view.channels:
-            await self.bot.db.execute('insert into pingonjoin values (?, ?)', ctx.guild.id, channel.id)
+            await self.bot.db.execute('insert into pingonjoin (guild_id, channel_id) values (?, ?)', ctx.guild.id, channel.id)
         self.channels[ctx.guild.id] = [channel.id for channel in view.channels]
         await view.inter.response.send_message('Done!')
 
