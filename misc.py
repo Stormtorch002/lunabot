@@ -16,7 +16,7 @@ class Misc(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        name = member.name
+        name = member.display_name
         if len(name) > 28:
             name = name[:28]
         await member.edit(nick=f'✿❀﹕{name}﹕')

@@ -41,7 +41,7 @@ class PingOnJoin(commands.Cog):
         if member.guild.id not in self.channels:
             return 
         for channel_id in self.channels[member.guild.id]:
-            channel = member.guild.get_channel(channel_id)
+            channel = self.bot.get_channel(channel_id)
             if channel is None:
                 continue 
             msg = await channel.send(member.mention)
