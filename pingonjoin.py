@@ -13,7 +13,7 @@ class ChannelSelectView(ui.View):
         self.ready = False 
         self.inter = None 
     
-    @ui.select(cls=ui.ChannelSelect, max_values=None)
+    @ui.select(cls=ui.ChannelSelect, max_values=25)
     async def channelsel(self, inter, sel):
         self.channels = sel.values 
         self.ready = True 
@@ -39,16 +39,16 @@ class PingOnJoin(commands.Cog):
     
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        logging.info(f'{member} joined {member.guild}')
+        # logging.info(f'{member} joined {member.guild}')
         if member.guild.id not in self.channels:
             return 
-        logging.info('Sending pings')
+        # logging.info('Sending pings')
         for channel_id in self.channels[member.guild.id]:
             channel = self.bot.get_channel(channel_id)
             if channel is None:
                 continue 
             msg = await channel.send(member.mention)
-            logging.info(f'sent ping in {channel}')
+            # logging.info(f'sent ping in {channel}')
             await msg.delete()
     
     @commands.hybrid_command()
