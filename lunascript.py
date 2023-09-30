@@ -169,15 +169,15 @@ class LunaScript(TextEmbed):
     def transform_embed(self):
         if self.embed is None:
             return 
-        self.embed.title = self.parser.parse(self.script_ctx, self.embed.title)
-        self.embed.description = self.parser.parse(self.script_ctx, self.embed.description)
+        self.embed.title = self.parser.parse(self.embed.title)
+        self.embed.description = self.parser.parse( self.embed.description)
         for field in self.embed.fields:
-            field.name = self.parser.parse(self.script_ctx, field.name)
-            field.value = self.parser.parse(self.script_ctx, field.value)
+            field.name = self.parser.parse( field.name)
+            field.value = self.parser.parse( field.value)
         if self.embed.author.name is not None:
-            self.embed.set_author(name=self.parser.parse(self.script_ctx, self.embed.author.name), icon_url=self.embed.author.icon_url)
+            self.embed.set_author(name=self.parser.parse( self.embed.author.name), icon_url=self.embed.author.icon_url)
         if self.embed.footer.text is not None:
-            self.embed.set_footer(text=self.parser.parse(self.script_ctx, self.embed.footer.text), icon_url=self.embed.footer.icon_url)
+            self.embed.set_footer(text=self.parser.parse( self.embed.footer.text), icon_url=self.embed.footer.icon_url)
         
     def transform(self):
         if self.text is None and self.embed is None:
