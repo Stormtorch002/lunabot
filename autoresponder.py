@@ -122,7 +122,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 else:
                     embed = None
 
-                obj = LunaScript(self.bot.get_context(msg), ar.text, embed).transform()
+                obj = LunaScript(await self.bot.get_context(msg), ar.text, embed).transform()
                 await msg.channel.send(obj.text, embed=obj.embed, delete_after=ar.delete_response_after)
             
             for roleid in ar.give_roles:
