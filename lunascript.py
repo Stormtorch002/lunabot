@@ -169,8 +169,10 @@ class LunaScript(TextEmbed):
     def transform_embed(self):
         if self.embed is None:
             return 
-        self.embed.title = self.parser.parse(self.embed.title)
-        self.embed.description = self.parser.parse( self.embed.description)
+        if self.embed.title:
+            self.embed.title = self.parser.parse(self.embed.title)
+        if self.embed.description:
+            self.embed.description = self.parser.parse( self.embed.description)
         for field in self.embed.fields:
             field.name = self.parser.parse( field.name)
             field.value = self.parser.parse( field.value)
@@ -388,7 +390,7 @@ class LunaScriptParser:
                     if not found:
                         raise UnmatchedBracket(f'Unmatched bracket: $')
 
-                    inside = string[i+1:j]
+                    inside = ordered_eval(string[i+1:j])
                     try:
                         repl = expr.evaluate(inside)
                     except Exception:
