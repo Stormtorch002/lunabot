@@ -1,7 +1,4 @@
-import discord 
-from discord.ext import commands 
 import expr 
-from num2words import num2words
 import re
 
 
@@ -15,144 +12,6 @@ def clean(token):
             repl = r'\"'
             token = f'''"{token.replace('"', repl)}"'''
     return token 
-
-
-class ScriptContext:
-    def __init__(self, bot, guild, channel, member=None, message=None):
-        self.bot = bot 
-        self.guild = guild 
-        self.channel = channel 
-        self.member = member 
-        self.message = message 
-        self.vars = self.bot.vars
-
-        self.vars_builtin_tuples = {
-            ('server', 'servername'): self.servername,
-            ('members', 'membercount', 'servermembercount'): self.membercount,
-            ('boosts', 'boostcount', 'serverboostcount'): self.boosts,
-            ('boostlevel', 'serverboostlevel', 'boosttier', 'serverboosttier'): self.boostlevel,
-            ('channel', 'channelmention'): self.channelmention,
-            ('channelname',): self.channelname,
-            ('member', 'membermention'): self.membermention,
-            ('avatar', 'memberavatar', 'pfp', 'memberpfp'): self.avatar,
-            ('memberusername', 'username'): self.memberusername,
-            ('membername', 'name', 'displayname', 'memberdisplayname'): self.membername
-        }
-        self.funcs_tuples = {
-            ('th', 'ordinal'): self.th
-        }
-        self.vars_builtin = {}
-        for k, v in self.vars.items():
-            for n in k:
-                self.vars_builtin[n] = v
-        self.funcs = {}
-        for k, v in self.funcs.items():
-            for n in k:
-                self.funcs[n] = v
-        
-
-    @classmethod 
-    def from_ctx(cls, ctx):
-        return cls(ctx.bot, ctx.guild, ctx.channel, ctx.author, ctx.message)
-    
-    # make a decorator that will add the function to self.repls
-    # make it take an optional argument called aliases 
-
-    def servername(self):
-        """Name of the current server"""
-        return self.guild.name
-
-    def membercount(self):
-        """Number of members in the current server"""
-        return len(self.guild.members) 
-
-    def boosts(self):
-        """Number of boosts in the current server"""
-        return self.guild.premium_subscription_count
-
-    def boostlevel(self):
-        """Boost level of the current server"""
-        return self.guild.premium_tier
- 
-    def channelmention(self):
-        """Mention of the current channel"""
-        return self.channel.mention
-
-    def channelname(self):
-        """Name of the current channel"""
-        return self.channel.name
-
-    def membermention(self):
-        """Mention of the current member"""
-        return self.member.mention
-
-    def avatar(self):
-        """Avatar of the current member"""
-        asset = self.member.display_avatar 
-        if asset.is_animated():
-            return asset.with_format('gif').url 
-        else:
-            return asset.with_format('png').url
-
-    def memberusername(self):
-        """Username of the current member"""
-        return self.member.name 
-
-    def membername(self):
-        """Display name of the current member"""
-        return self.member.display_name 
-
-    def th(self, num: str):
-        """Converts a number to its ordinal form"""
-        return num2words(int(num), 'ordinal_num')
-
-    
-class TextEmbed:
-    def __init__(self, text=None, embed=None):
-        self.text = text 
-        self.embed = embed 
-
-
-class LunaScript(TextEmbed):
-
-    def __init__(self, msgble, text=None, embed=None, **kwargs):
-        super().__init__(text, embed)
-        if isinstance(msgble, commands.Context):
-            self.script_ctx = ScriptContext.from_ctx(self.ctx)
-        else:
-            if 'channel' in kwargs:
-                channel = kwargs.pop('channel')
-            else:
-                channel = msgble
-
-            self.script_ctx = ScriptContext(channel=channel, **kwargs)
-        self.parser = LunaScriptParser(self.script_ctx)
-
-    async def send(self):
-        await self.ctx.send(await self.parser.parse(self.text), embed=self.transform_embed())
-
-    async def transform_embed(self):
-        if self.embed is None:
-            return 
-        if self.embed.title:
-            self.embed.title = await self.parser.parse(self.embed.title)
-        if self.embed.description:
-            self.embed.description = await self.parser.parse( self.embed.description)
-        for field in self.embed.fields:
-            field.name = await self.parser.parse(field.name)
-            field.value = await self.parser.parse(field.value)
-        if self.embed.author.name is not None:
-            self.embed.set_author(name=await self.parser.parse( self.embed.author.name), icon_url=self.embed.author.icon_url)
-        if self.embed.footer.text is not None:
-            self.embed.set_footer(text=await self.parser.parse( self.embed.footer.text), icon_url=self.embed.footer.icon_url)
-        
-
-# class Bracket:
-#     def __init__(self, beg, end, brktype, funcname=None):
-#         self.beg = beg 
-#         self.end = end 
-#         self.brktype = brktype 
-#         self.funcname = funcname
 
 class LunaScriptError(Exception):
     pass
@@ -170,19 +29,18 @@ class InvalidCondition(LunaScriptError):
     pass
 
 
-
 class LunaScriptParser:
 
-    def __init__(self, script_ctx):
-        self.script_ctx = script_ctx
-        self.vars_builtin = self.script_ctx.vars_builtin
-        self.funcs = self.script_ctx.funcs
-        self.vars = self.script_ctx.bot.vars 
 
-    async def parse(self, text):
-        return await self.script_ctx.bot.loop.run_in_executor(None, self.parse_sync, text)
+    def __init__(self):
+        self.funcs = {'th': self.th} 
+        self.vars_builtin = {'name': 'bob', 'mention': '<@6969>'}
+        self.vars = {'n': 0}
 
-    def parse_sync(self, text):
+    def th(self, num):
+        return str(num) + 'th'
+
+    def parse(self, text):
         
         def ordered_eval(string):
             string = [char for char in string]
@@ -339,3 +197,15 @@ class LunaScriptParser:
             return ''.join(newstr)
         
         return ordered_eval(text)
+
+teststr = '''<s>
+n+=1
+updates = 'n'
+</s>
+hi {mention}! you are the th({n}) person to use this.
+[{n}<10: we need $10-{n}$ more to reach 10]
+[{n}>=10: we reached 10!]'''
+
+parser = LunaScriptParser()
+print(parser.parse(teststr))
+print(parser.vars)
