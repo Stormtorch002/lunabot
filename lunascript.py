@@ -401,14 +401,15 @@ class LunaScriptParser:
                         i += 1
                         continue
                     
-                    j = i+1
+                    j = i+3
                     found = False
                     while j < len(string) - 3:
                         if string[j:j+4].lower() == '</s>':
                             found = True
                             break
                         j += 1
-                    
+
+                    print(string) 
                     if not found:
                         raise UnmatchedBracket(f'Unmatched bracket: <s>')
 
