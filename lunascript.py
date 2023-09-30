@@ -345,7 +345,7 @@ class LunaScriptParser:
                         j += 1
                     varname = ''.join(string[i+1:j])
                     if varname in self.vars_builtin:
-                        repl = self.vars_builtin[varname]
+                        repl = self.vars_builtin[varname]()
                     elif varname in self.vars:
                         repl = self.vars[varname]
                     else:
