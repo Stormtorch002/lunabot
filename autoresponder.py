@@ -6,7 +6,7 @@ import discord
 import json 
 import asyncio 
 import re 
-
+from lunascript import LunaScript
 
 
 class RoleView(ui.View):
@@ -121,8 +121,9 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                     embed = discord.Embed.from_dict(ar.embed)
                 else:
                     embed = None
-            
-                await msg.channel.send(ar.text, embed=embed, delete_after=ar.delete_response_after)
+
+                obj = LunaScript(self.bot.get_context(msg), ar.text, embed).transform()
+                await msg.channel.send(obj.text, embed=obj.embed, delete_after=ar.delete_response_after)
             
             for roleid in ar.give_roles:
                 role = msg.guild.get_role(roleid) 
