@@ -396,7 +396,7 @@ class LunaScriptParser:
                     newstr += str(repl)
                     i += j - i + 1
                 elif string[i] == '<':
-                    if not (i < len(string) - 2 or string[i+1].lower() == 's' or string[i+2] == '>'):
+                    if i >= len(string) - 2 or string[i+1].lower() != 's' or string[i+2] != '>':
                         newstr += string[i]
                         i += 1
                         continue
@@ -410,6 +410,7 @@ class LunaScriptParser:
                         j += 1
 
                     print(string) 
+                    print('\n')
                     if not found:
                         raise UnmatchedBracket(f'Unmatched bracket: <s>')
 
