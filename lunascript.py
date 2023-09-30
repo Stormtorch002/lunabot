@@ -130,9 +130,9 @@ class LunaScript(TextEmbed):
         self.parser = LunaScriptParser(self.script_ctx)
 
     async def send(self):
-        print(self.text)
-        print(self.embed)
         try:
+            print(self.text)
+            print(self.embed)
             await self.msgble.send(await self.parser.parse(self.text), embed=await self.transform_embed())
         except LunaScriptError as e:
             await self.msgble.send(f'An error occurred while parsing the LunaScript: `{e}`')
@@ -330,7 +330,6 @@ class LunaScriptParser:
                             exec(f'{name} = {val}', locals(), locals())
                         exec(''.join(string[i+3:j]))
                         g = locals() 
-                        print(g)
                         if 'updates' in g:
                             for varname in g['updates'].split():
                                 if varname in g:
