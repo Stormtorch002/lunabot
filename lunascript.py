@@ -372,7 +372,7 @@ class LunaScriptParser:
                         repl = func(*args)
                     except TypeError:
                         raise InvalidFunctionArgs(f'Invalid arguments for {funcname}: {inside}')
-                    newstr += repl 
+                    newstr += str(repl)
 
                     i += j - i + 1
                 elif string[i] == '$':
@@ -393,7 +393,7 @@ class LunaScriptParser:
                         repl = expr.evaluate(inside)
                     except Exception:
                         raise InvalidMathExpression(f'Invalid math expression: {inside}')
-                    newstr += repl
+                    newstr += str(repl)
                     i += j - i + 1
                 elif string[i] == '<':
                     if not (i < len(string) - 2 or string[i+1].lower() == 's' or string[i+2] == '>'):
@@ -434,7 +434,7 @@ class LunaScriptParser:
                         repl = self.vars[varname]
                     else:
                         repl = ''
-                    newstr += repl
+                    newstr += str(repl)
                     i += j - i + 1
                 else:
                     newstr += string[i]
