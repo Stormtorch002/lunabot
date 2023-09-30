@@ -14,7 +14,7 @@ class Tools(commands.Cog, description='storchs tools'):
     def __init__(self, bot):
         self.bot = bot 
 
-    def load_ls_vars(self):
+    async def cog_load(self):
         with open('vars.json') as f:
             self.bot.vars = json.load(f)
     
