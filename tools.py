@@ -4,7 +4,7 @@ from discord import ui
 from discord.utils import escape_markdown
 from embed_editor.editor import EmbedEditor
 import discord 
-from lunascript import ScriptContext
+from lunascript import ScriptContext, LunaScriptError, clean 
 import inspect 
 import importlib 
 
@@ -43,6 +43,12 @@ class Tools(commands.Cog, description='storchs tools'):
             embed.add_field(name=names, value=func.__doc__ + f'\n\nUsage: {names[0]}{sig}', inline=False)
         # make a view with a dropdown to view the magicfuncs 
         await ctx.send(embed=embed)
+    
+    @commands.command()
+    async def addvar(self, ctx, name, *, value):
+        value = clean(value) 
+        self.bot.vars[name] = value 
+        await ctx.send('Done!') 
     
     @commands.command()
     async def reloadmodules(self, ctx):
