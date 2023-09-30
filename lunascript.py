@@ -118,7 +118,7 @@ class LunaScript(TextEmbed):
     def __init__(self, msgble, text=None, embed=None, **kwargs):
         super().__init__(text, embed)
         if isinstance(msgble, commands.Context):
-            self.script_ctx = ScriptContext.from_ctx(self.ctx)
+            self.script_ctx = ScriptContext.from_ctx(msgble)
         else:
             if 'channel' in kwargs:
                 channel = kwargs.pop('channel')
