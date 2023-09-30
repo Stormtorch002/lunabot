@@ -130,6 +130,8 @@ class LunaScript(TextEmbed):
         self.parser = LunaScriptParser(self.script_ctx)
 
     async def send(self):
+        print(self.text)
+        print(self.embed)
         try:
             await self.msgble.send(await self.parser.parse(self.text), embed=await self.transform_embed())
         except LunaScriptError as e:
