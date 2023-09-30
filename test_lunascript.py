@@ -90,7 +90,7 @@ class LunaScriptParser:
                     i += j - i + 1
                 elif string[i] == '(':
                     k = i-1
-                    while k > 0 and string[k] != ' ':
+                    while k >= 0 and string[k] != ' ':
                         k -= 1
                     funcname = ''.join(string[k+1:i])
                     if funcname not in self.funcs:
@@ -205,7 +205,9 @@ updates = 'n'
 hi {mention}! you are the th({n}) person to use this.
 [{n}<10: we need $10-{n}$ more to reach 10]
 [{n}>=10: we reached 10!]'''
+teststr = 'th(6)'
 
 parser = LunaScriptParser()
-print(parser.parse(teststr))
+for i in range(100):
+    print(parser.parse(teststr))
 print(parser.vars)

@@ -33,7 +33,7 @@ class ScriptContext:
             ('boostlevel', 'serverboostlevel', 'boosttier', 'serverboosttier'): self.boostlevel,
             ('channel', 'channelmention'): self.channelmention,
             ('channelname',): self.channelname,
-            ('member', 'membermention'): self.membermention,
+            ('mention', 'ping', 'member', 'membermention'): self.membermention,
             ('avatar', 'memberavatar', 'pfp', 'memberpfp'): self.avatar,
             ('memberusername', 'username'): self.memberusername,
             ('membername', 'name', 'displayname', 'memberdisplayname'): self.membername
@@ -240,7 +240,7 @@ class LunaScriptParser:
                     i += j - i + 1
                 elif string[i] == '(':
                     k = i-1
-                    while k > 0 and string[k] != ' ':
+                    while k >= 0 and string[k] != ' ':
                         k -= 1
                     funcname = ''.join(string[k+1:i])
                     if funcname not in self.funcs:
