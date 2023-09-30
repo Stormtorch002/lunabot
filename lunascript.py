@@ -335,6 +335,7 @@ class LunaScriptParser:
                             for varname in g['updates'].split():
                                 if varname in g:
                                     self.vars[varname] = g[varname]
+                                    self.script_ctx.bot.vars[varname] = g[varname]
                     inner()
                     i += j - i + 4
                 elif string[i] == '{':
