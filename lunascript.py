@@ -42,11 +42,11 @@ class ScriptContext:
             ('th', 'ordinal'): self.th
         }
         self.vars_builtin = {}
-        for k, v in self.vars.items():
+        for k, v in self.vars_builtin_tuples.items():
             for n in k:
                 self.vars_builtin[n] = v
         self.funcs = {}
-        for k, v in self.funcs.items():
+        for k, v in self.funcs_tuples.items():
             for n in k:
                 self.funcs[n] = v
         
