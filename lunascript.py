@@ -152,6 +152,7 @@ class LunaScript(TextEmbed):
             self.embed.set_author(name=await self.parser.parse( self.embed.author.name), icon_url=self.embed.author.icon_url)
         if self.embed.footer.text is not None:
             self.embed.set_footer(text=await self.parser.parse( self.embed.footer.text), icon_url=self.embed.footer.icon_url)
+        return self.embed
         
 
 # class Bracket:
