@@ -104,7 +104,7 @@ class ScriptContext:
 
     def th(self, num: str):
         """Converts a number to its ordinal form"""
-        return num2words(int(num), 'ordinal_num')
+        return num2words(int(num), to='ordinal_num')
 
     
 class TextEmbed:
