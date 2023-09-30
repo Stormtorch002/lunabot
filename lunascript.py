@@ -119,6 +119,7 @@ class LunaScript(TextEmbed):
         super().__init__(text, embed)
         if isinstance(msgble, commands.Context):
             self.script_ctx = ScriptContext.from_ctx(msgble)
+            self.msgble = self.script_ctx.channel
         else:
             if 'channel' in kwargs:
                 channel = kwargs.pop('channel')
@@ -126,7 +127,7 @@ class LunaScript(TextEmbed):
                 channel = msgble
 
             self.script_ctx = ScriptContext(channel=channel, **kwargs)
-        self.msgble = msgble
+            self.msgble = msgble
         self.parser = LunaScriptParser(self.script_ctx)
 
     async def send(self):
