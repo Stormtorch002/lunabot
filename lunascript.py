@@ -5,6 +5,17 @@ from num2words import num2words
 import re
 
 
+def clean(token):
+    try:
+        token = int(token)
+    except ValueError:
+        try:
+            token = float(token)
+        except ValueError:
+            token = r'\"'
+            token = f'''"{token.replace('"', repl)}"'''
+    return token 
+
 def lunascript_var(aliases=None):
     def decorator(func):
         def wrapper(self, *args, **kwargs):
@@ -308,16 +319,6 @@ class LunaScriptParser:
 
                     inside = ordered_eval(string[i+1:j])
 
-                    def clean(token):
-                        try:
-                            token = int(token)
-                        except ValueError:
-                            try:
-                                token = float(token)
-                            except ValueError:
-                                token = r'\"'
-                                token = f'''"{token.replace('"', repl)}"'''
-                        return token 
 
                     match = re.match(r'(\d+|(?:.+?))\s*(<|<=|=<|==|=|=>|>=|>)\s*(\d+|(?:.+?)):[ ]?', inside)
                     if match is None:
@@ -412,6 +413,8 @@ class LunaScriptParser:
 
                     def inner():
                         updates = '' 
+                        for name, val in self.vars.items():
+                            exec(f'{name} = {val}')
                         exec(string[i+3:j])
                         g = globals()
                         for varname in updates.split():

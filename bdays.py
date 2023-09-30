@@ -100,7 +100,7 @@ class Birthdays(commands.Cog, description="Set your birthday, see other birthday
 
         for row in user_ids:
             user_id = row[0]
-            member = self.bot.get_member(user_id)
+            member = self.bot.get_user(user_id)
             repl = {
                 '{name}': member.display_name,
                 '{mention}': member.mention,
