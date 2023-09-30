@@ -129,7 +129,10 @@ class LunaScript(TextEmbed):
         self.parser = LunaScriptParser(self.script_ctx)
 
     async def send(self):
-        await self.ctx.send(await self.parser.parse(self.text), embed=self.transform_embed())
+        try:
+            await self.ctx.send(await self.parser.parse(self.text), embed=self.transform_embed())
+        except LunaScriptError as e:
+            await self.ctx.send(f'An error occurred while parsing the LunaScript: `{e}`')
 
     async def transform_embed(self):
         if self.embed is None:
@@ -308,6 +311,15 @@ class LunaScriptParser:
                         raise UnmatchedBracket(f'Unmatched bracket: <s>')
 
                     def inner():
+                        vars = [
+                            ('bot', 'self.script_ctx.bot'), 
+                            ('server', 'self.script_ctx.server'), 
+                            ('channel', 'self.script_ctx.channel'), 
+                            ('member', 'self.script_ctx.member'), 
+                            ('message', 'self.script_ctx.message')
+                        ]
+                        for name, val in vars:
+                            exec(f'{name} = {val}', locals(), locals())
                         for name, val in self.vars.items():
                             exec(f'{name} = {val}', locals(), locals())
                         exec(''.join(string[i+3:j]))
