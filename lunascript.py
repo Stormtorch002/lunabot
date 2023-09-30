@@ -314,7 +314,7 @@ class LunaScriptParser:
                     def inner():
                         vars = [
                             ('bot', 'self.script_ctx.bot'), 
-                            ('server', 'self.script_ctx.server'), 
+                            ('server', 'self.script_ctx.guild'), 
                             ('channel', 'self.script_ctx.channel'), 
                             ('member', 'self.script_ctx.member'), 
                             ('message', 'self.script_ctx.message')
