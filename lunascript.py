@@ -47,6 +47,7 @@ class ScriptContext:
         self.channel = channel 
         self.member = member 
         self.message = message 
+        self.vars = self.bot.vars
 
         # var_methods = [
         #     self.server,

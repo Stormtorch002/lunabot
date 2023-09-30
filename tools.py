@@ -16,11 +16,11 @@ class Tools(commands.Cog, description='storchs tools'):
 
     def load_ls_vars(self):
         with open('vars.json') as f:
-            self.vars = json.load(f)
+            self.bot.vars = json.load(f)
     
     async def cog_unload(self):
         with open('vars.json', 'w') as f:
-            json.dump(self.vars, f, indent=4)
+            json.dump(self.bot.vars, f, indent=4)
 
     async def cog_check(self, ctx):
         return ctx.author.guild_permissions.administrator or ctx.author.id == self.bot.owner_id
