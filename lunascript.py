@@ -326,7 +326,7 @@ class LunaScriptParser:
                         for name, val in self.vars.items():
                             if isinstance(val, str):
                                 repl = '\\"'
-                                val = f'"{val}"'.replace('"', repl)
+                                val = '"' + val.replace('"', repl) + '"'
                             exec(f'{name} = {val}', locals(), locals())
                         exec(''.join(string[i+3:j]))
                         g = locals() 
