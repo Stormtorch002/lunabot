@@ -15,7 +15,6 @@ bot = commands.Bot(command_prefix='!', intents=intents, status=discord.Status.id
 
 
 async def start():
-    with open('')
     print('Loading...')
     await bot.wait_until_ready()
     print('Ready')
