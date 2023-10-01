@@ -21,13 +21,18 @@ def clean(token):
 
 
 class ScriptContext:
-    def __init__(self, bot, guild, channel, member=None, message=None):
+    def __init__(self, bot, guild, channel, args=None, member=None, message=None):
         self.bot = bot 
         self.guild = guild 
         self.channel = channel 
         self.member = member 
         self.message = message 
         self.vars = self.bot.vars
+
+        self.args = {}
+        if args is not None:
+            for i, arg in enumerate(args):
+                self.args[f'${i+1}'] = arg 
 
         self.vars_builtin_tuples = {
             ('serverid',): self.serverid,
@@ -62,8 +67,8 @@ class ScriptContext:
         
 
     @classmethod 
-    def from_ctx(cls, ctx):
-        return cls(ctx.bot, ctx.guild, ctx.channel, ctx.author, ctx.message)
+    def from_ctx(cls, ctx, args=None):
+        return cls(ctx.bot, ctx.guild, ctx.channel, args, ctx.author, ctx.message)
     
     # make a decorator that will add the function to self.repls
     # make it take an optional argument called aliases 
@@ -156,10 +161,10 @@ class TextEmbed:
 
 class LunaScript(TextEmbed):
 
-    def __init__(self, msgble, text=None, embed=None, **kwargs):
+    def __init__(self, msgble, text=None, embed=None, args=None, bot=None, **kwargs):
         super().__init__(text, embed)
         if isinstance(msgble, commands.Context):
-            self.script_ctx = ScriptContext.from_ctx(msgble)
+            self.script_ctx = ScriptContext.from_ctx(msgble, args)
             self.msgble = self.script_ctx.channel
         else:
             if 'channel' in kwargs:
@@ -167,7 +172,7 @@ class LunaScript(TextEmbed):
             else:
                 channel = msgble
 
-            self.script_ctx = ScriptContext(channel=channel, **kwargs)
+            self.script_ctx = ScriptContext(bot, args=args, channel=channel, **kwargs)
             self.msgble = msgble
         self.parser = LunaScriptParser(self.script_ctx)
 
@@ -399,6 +404,8 @@ class LunaScriptParser:
                         repl = self.vars_builtin[varname]()
                     elif varname in self.vars:
                         repl = self.vars[varname]
+                    elif varname in self.args:
+                        repl = self.args[varname]
                     else:
                         repl = ''
                     newstr.extend([char for char in str(repl)])
