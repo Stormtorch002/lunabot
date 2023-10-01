@@ -254,8 +254,9 @@ class LunaScriptParser:
                                 counter -= 1 
                         j += 1  
                     if not found:
-                        raise UnmatchedBracket(f'Unmatched bracket: [')
-
+                        newstr.append('[')
+                        i += 1
+                        continue
                     inside = ordered_eval(string[i+1:j])
 
                     comp = True
@@ -263,7 +264,9 @@ class LunaScriptParser:
                     if match is None:
                         match = re.match(r'(true|false):[ ]?', inside)
                         if match is None:
-                            raise InvalidCondition(f'Invalid condition in {inside}')
+                            newstr.append('[')
+                            i += 1
+                            continue
                         comp = False
 
                     if comp: 
@@ -307,7 +310,9 @@ class LunaScriptParser:
                                 counter -= 1 
                         j += 1  
                     if not found:
-                        raise UnmatchedBracket(f'Unmatched bracket: (')
+                        newstr.append('(')
+                        i += 1
+                        continue
 
                     inside = ordered_eval(string[i+1:j])
                     args = inside.split(',')
@@ -333,7 +338,9 @@ class LunaScriptParser:
                             break
                         j += 1
                     if not found:
-                        raise UnmatchedBracket(f'Unmatched bracket: $')
+                        newstr.append('$')
+                        i += 1
+                        continue
 
                     inside = ordered_eval(string[i+1:j])
                     try:
