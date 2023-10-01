@@ -30,9 +30,11 @@ class BumpRemind(commands.Cog):
             '⁺﹒<@&1137968018270457957>﹗𖹭﹒⁺',
             embed=self.embed
         )
+        query = 'DELETE FROM bumpremind'
+        await self.bot.db.execute(query)
 
     async def task(self, end_time):
-        query = 'UPDATE bumpremind SET nextbump = ?'
+        query = 'INSERT INTO bumpremind (nextbump) VALUES (?)'
         await self.bot.db.execute(query, int(end_time.timestamp()))
         logging.info(f'Next bump remind at {end_time}')
         await discord.utils.sleep_until(end_time)

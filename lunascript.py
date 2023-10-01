@@ -5,6 +5,7 @@ from num2words import num2words
 import re
 import datetime 
 import time
+from levels import get_level 
 
 
 def clean(token):
@@ -29,12 +30,15 @@ class ScriptContext:
         self.vars = self.bot.vars
 
         self.vars_builtin_tuples = {
+            ('serverid',): self.serverid,
             ('server', 'servername'): self.servername,
             ('members', 'membercount', 'servermembercount'): self.membercount,
             ('boosts', 'boostcount', 'serverboostcount'): self.boosts,
             ('boostlevel', 'serverboostlevel', 'boosttier', 'serverboosttier'): self.boostlevel,
+            ('channelid',): self.channelid,
             ('channel', 'channelmention'): self.channelmention,
             ('channelname',): self.channelname,
+            ('memberid',): self.memberid,
             ('mention', 'ping', 'member', 'membermention'): self.membermention,
             ('avatar', 'memberavatar', 'pfp', 'memberpfp'): self.avatar,
             ('memberusername', 'username'): self.memberusername,
@@ -43,7 +47,9 @@ class ScriptContext:
         self.funcs_tuples = {
             ('th', 'ordinal'): self.th,
             ('now',): self.now,
-            ('timethingy',): self.timethingy
+            ('timethingy',): self.timethingy,
+            ('xp',): self.xp,
+            ('level',): self.level
         }
         self.vars_builtin = {}
         for k, v in self.vars_builtin_tuples.items():
@@ -65,6 +71,10 @@ class ScriptContext:
     def servername(self):
         """Name of the current server"""
         return self.guild.name
+    
+    def serverid(self):
+        """ID of the current server"""
+        return self.guild.id
 
     def membercount(self):
         """Number of members in the current server"""
@@ -77,7 +87,11 @@ class ScriptContext:
     def boostlevel(self):
         """Boost level of the current server"""
         return self.guild.premium_tier
- 
+
+    def channelid(self):
+        """ID of the current channel"""
+        return self.channel.id
+
     def channelmention(self):
         """Mention of the current channel"""
         return self.channel.mention
@@ -86,6 +100,10 @@ class ScriptContext:
         """Name of the current channel"""
         return self.channel.name
 
+    def memberid(self):
+        """ID of the current member"""
+        return self.member.id
+    
     def membermention(self):
         """Mention of the current member"""
         return self.member.mention
@@ -114,11 +132,19 @@ class ScriptContext:
         """Gets the current time as a number"""
         return int(time.time())
     
-    def timethingy(self, timestamp: str, fmt='t'):
+    def timethingy(self, timestamp: str, fmt='R'):
         """Turns a time number into a readable time thingy on Discord"""
         timestamp = int(timestamp)
         return discord.utils.format_dt(datetime.datetime.fromtimestamp(timestamp), fmt)
     
+    def xp(self, memberid: str):
+        """Gets the XP of a member"""
+        return self.bot.xp_cache[int(memberid)]
+    
+    def level(self, memberid: str):
+        """Gets the level of a member"""
+        return get_level(self.bot.xp_cache[int(memberid)])
+
 
 
     
@@ -147,9 +173,11 @@ class LunaScript(TextEmbed):
 
     async def send(self):
         try:
-            print(self.text)
-            print(self.embed)
-            await self.msgble.send(await self.parser.parse(self.text), embed=await self.transform_embed())
+            if self.text is None:
+                text = None 
+            else:
+                text = await self.parser.parse(self.text)
+            await self.msgble.send(text, embed=await self.transform_embed())
         except LunaScriptError as e:
             await self.msgble.send(f'An error occurred while parsing the LunaScript: `{e}`')
 
@@ -169,13 +197,6 @@ class LunaScript(TextEmbed):
             self.embed.set_footer(text=await self.parser.parse( self.embed.footer.text), icon_url=self.embed.footer.icon_url)
         return self.embed
         
-
-# class Bracket:
-#     def __init__(self, beg, end, brktype, funcname=None):
-#         self.beg = beg 
-#         self.end = end 
-#         self.brktype = brktype 
-#         self.funcname = funcname
 
 class LunaScriptError(Exception):
     pass
@@ -237,20 +258,28 @@ class LunaScriptParser:
 
                     inside = ordered_eval(string[i+1:j])
 
+                    comp = True
                     match = re.match(r'(\d+|(?:.+?))\s*(<|<=|=<|==|=|=>|>=|>)\s*(\d+|(?:.+?)):[ ]?', inside)
                     if match is None:
-                        raise InvalidCondition(f'Invalid condition in {inside}')
-                    
-                    left = match.group(1)
-                    left = clean(left)
-                    op = match.group(2)
-                    if op == '=':
-                        op = '=='
-                    right = match.group(3)
-                    right = clean(right)
+                        match = re.match(r'(true|false):[ ]?', inside)
+                        if match is None:
+                            raise InvalidCondition(f'Invalid condition in {inside}')
+                        comp = False
 
-                    if eval(f'{left} {op} {right}') is True:
-                        newstr.extend([char for char in inside[match.end():]])
+                    if comp: 
+                        left = match.group(1)
+                        left = clean(left)
+                        op = match.group(2)
+                        if op == '=':
+                            op = '=='
+                        right = match.group(3)
+                        right = clean(right)
+
+                        if eval(f'{left} {op} {right}') is True:
+                            newstr.extend([char for char in inside[match.end():]])
+                    else:
+                        if match.group(1) == 'true':
+                            newstr.extend([char for char in inside[match.end():]])
 
                     i += j - i + 1
                 elif string[i] == '(':

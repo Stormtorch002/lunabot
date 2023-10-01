@@ -62,6 +62,7 @@ class Levels(commands.Cog):
             981252193132884109: 1.1
         }
         self.xp_cache = {} 
+        self.bot.xp_cache = self.xp_cache
         self.msg_counts = {}
         self.weekly_xp_task.start()
 
