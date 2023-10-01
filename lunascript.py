@@ -282,7 +282,7 @@ class LunaScriptParser:
 
                     inside = ordered_eval(string[i+1:j])
                     args = inside.split(',')
-                    args = [arg.strip() for arg in args]
+                    args = [arg.strip() for arg in args if args != '']
                     func = self.funcs[funcname]
                     try:
                         repl = func(*args)
