@@ -117,7 +117,7 @@ class ScriptContext:
     def timethingy(self, timestamp: str, fmt='t'):
         """Turns a time number into a readable time thingy on Discord"""
         timestamp = int(timestamp)
-        return discord.utils.format_dt(datetime.datetime.fromtimestamp(timestamp), fmt=fmt)
+        return discord.utils.format_dt(datetime.datetime.fromtimestamp(timestamp), fmt)
     
 
 
