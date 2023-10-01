@@ -34,9 +34,6 @@ class BumpRemind(commands.Cog):
         await self.bot.db.execute(query)
 
     async def task(self, end_time):
-        query = 'INSERT INTO bumpremind (nextbump) VALUES (?)'
-        await self.bot.db.execute(query, int(end_time.timestamp()))
-        logging.info(f'Next bump remind at {end_time}')
         await discord.utils.sleep_until(end_time)
         await self.send()
 
@@ -48,6 +45,9 @@ class BumpRemind(commands.Cog):
                 if 'Bump done!' in embed.description:
                     end_time = discord.utils.utcnow() + datetime.timedelta(hours=2)
                     self.bot.loop.create_task(self.task(end_time))
+                    query = 'INSERT INTO bumpremind (nextbump) VALUES (?)'
+                    await self.bot.db.execute(query, int(end_time.timestamp()))
+                    logging.info(f'Next bump remind at {end_time}')
 
 
 
