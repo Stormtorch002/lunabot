@@ -3,6 +3,8 @@ from discord.ext import commands
 import expr 
 from num2words import num2words
 import re
+import datetime 
+import time
 
 
 def clean(token):
@@ -105,6 +107,17 @@ class ScriptContext:
     def th(self, num: str):
         """Converts a number to its ordinal form"""
         return num2words(int(num), to='ordinal_num')
+    
+    def now(self):
+        """Gets the current time as a number"""
+        return int(time.time())
+    
+    def timethingy(self, timestamp: str, fmt='t'):
+        """Turns a time number into a readable time thingy on Discord"""
+        timestamp = int(timestamp)
+        return discord.utils.format_dt(datetime.datetime.fromtimestamp(timestamp), fmt=fmt)
+    
+
 
     
 class TextEmbed:

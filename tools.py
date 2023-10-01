@@ -39,7 +39,6 @@ class Tools(commands.Cog, description='storchs tools'):
         embed = discord.Embed(title='LunaScript Functions', color=0xcab7ff)
         for names, func in ls.funcs_tuples.items():
             sig = inspect.signature(func)
-            names = ', '.join(names)
             embed.add_field(name=names, value=func.__doc__ + f'\n\nUsage: {names[0]}{sig}', inline=False)
         # make a view with a dropdown to view the magicfuncs 
         await ctx.send(embed=embed)
