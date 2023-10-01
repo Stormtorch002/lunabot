@@ -100,6 +100,8 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 continue 
             
             content = msg.content.lower()
+            args = None 
+
             if ar.detection == 'any':
                 if ar.phrase not in content:
                     continue 
@@ -110,8 +112,10 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 if ar.phrase not in content.split():
                     continue 
             elif ar.detection == 'regex':
-                if not re.search(ar.phrase, msg.content, re.IGNORECASE):
+                match = re.search(ar.phrase, msg.content, re.IGNORECASE)
+                if not match: 
                     continue 
+                args = match.groups()
 
             if ar.autoemojis:
                 for emoji in ar.autoemojis:
@@ -123,7 +127,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                     embed = None
 
                 # await msg.channel.send(ar.text, embed=embed, delete_after=ar.delete_response_after)
-                ls = LunaScript(await self.bot.get_context(msg), ar.text, embed)
+                ls = LunaScript(await self.bot.get_context(msg), ar.text, embed, args)
                 await ls.send()
             
             for roleid in ar.give_roles:
