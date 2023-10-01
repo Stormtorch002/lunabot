@@ -4,7 +4,7 @@ from discord import ui
 from discord.utils import escape_markdown
 from embed_editor.editor import EmbedEditor
 import discord 
-from lunascript import ScriptContext, LunaScriptError, clean 
+from lunascript import ScriptContext, LunaScriptParser, clean 
 import inspect 
 import importlib 
 
@@ -65,7 +65,12 @@ class Tools(commands.Cog, description='storchs tools'):
             names = ', '.join(names)
             embed.add_field(name=names, value=func.__doc__ + f'\n\nExample: {func()}', inline=False)
         await ctx.send(embed=embed)
-    
+
+    @commands.command()
+    async def lseval(self, ctx, *, string):
+        parser = LunaScriptParser(ScriptContext.from_ctx(ctx))
+        await ctx.send(await parser.parse(string))
+
     @commands.command()
     async def grabembed(self, ctx, url):
         tokens = url.split('/')
