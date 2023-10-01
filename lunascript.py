@@ -226,7 +226,8 @@ class LunaScriptParser:
         self.script_ctx = script_ctx
         self.vars_builtin = self.script_ctx.vars_builtin
         self.funcs = self.script_ctx.funcs
-        self.vars = self.script_ctx.bot.vars 
+        self.vars = self.script_ctx.bot.vars  
+        self.args = self.script_ctx.args
 
     async def parse(self, text):
         return await self.script_ctx.bot.loop.run_in_executor(None, self.parse_sync, text)
