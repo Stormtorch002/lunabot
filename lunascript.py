@@ -41,7 +41,9 @@ class ScriptContext:
             ('membername', 'name', 'displayname', 'memberdisplayname'): self.membername
         }
         self.funcs_tuples = {
-            ('th', 'ordinal'): self.th
+            ('th', 'ordinal'): self.th,
+            ('now',): self.now,
+            ('timethingy',): self.timethingy
         }
         self.vars_builtin = {}
         for k, v in self.vars_builtin_tuples.items():
