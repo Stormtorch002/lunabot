@@ -115,7 +115,7 @@ class Tools(commands.Cog, description='storchs tools'):
         
         query = 'insert into layouts (name, content, embed) values (?, ?, ?) on conflict (name) do update set content = ?, embed = ?'
         await self.bot.db.execute(query, name.lower(), text, embed, text, embed)
-        self.layouts[name.lower()] = (text, embed)
+        self.bot.layouts[name.lower()] = (text, embed)
         await ctx.send(f'Set the layout `{name.lower()}`!')
 
 
