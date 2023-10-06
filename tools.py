@@ -136,6 +136,7 @@ class Tools(commands.Cog, description='storchs tools'):
             return
         text, embed = self.bot.layouts[name.lower()]
         embed = self.bot.embeds[embed]
+        print(embed.to_dict())
         await ctx.send(text, embed=embed)
 
     @commands.command()
