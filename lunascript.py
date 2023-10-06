@@ -8,6 +8,27 @@ import time
 from levels import get_level 
 
 
+class LayoutNotFound(Exception):
+    pass
+
+
+class Layout:
+    def __init__(self, bot, name, content=None, embed=None):
+        self.bot = bot
+        self.name = name
+        self.content = content
+        self.embed = embed
+    
+    @classmethod
+    def from_name(cls, bot, name):
+        if name not in bot.layouts:
+            raise LayoutNotFound(f'Layout {name} not found')
+        return cls(bot, name, bot.layouts[name][0], bot.layouts[name][1])
+    
+    
+
+        
+        
 def clean(token):
     try:
         token = int(token)
@@ -21,7 +42,7 @@ def clean(token):
 
 
 class ScriptContext:
-    def __init__(self, bot, guild, channel, args=None, member=None, message=None):
+    def __init__(self, bot, channel, guild=None, member=None, message=None, args=None):
         self.bot = bot 
         self.guild = guild 
         self.channel = channel 
@@ -64,11 +85,10 @@ class ScriptContext:
         for k, v in self.funcs_tuples.items():
             for n in k:
                 self.funcs[n] = v
-        
 
     @classmethod 
     def from_ctx(cls, ctx, args=None):
-        return cls(ctx.bot, ctx.guild, ctx.channel, args, ctx.author, ctx.message)
+        return cls(ctx.bot, ctx.channel, ctx.guild, ctx.author, ctx.message, args)
     
     # make a decorator that will add the function to self.repls
     # make it take an optional argument called aliases 
@@ -161,10 +181,10 @@ class TextEmbed:
 
 class LunaScript(TextEmbed):
 
-    def __init__(self, msgble, text=None, embed=None, args=None, bot=None, **kwargs):
+    def __init__(self, msgble, text=None, embed=None, **kwargs):
         super().__init__(text, embed)
         if isinstance(msgble, commands.Context):
-            self.script_ctx = ScriptContext.from_ctx(msgble, args)
+            self.script_ctx = ScriptContext.from_ctx(msgble, kwargs.pop('args'))
             self.msgble = self.script_ctx.channel
         else:
             if 'channel' in kwargs:
@@ -172,9 +192,13 @@ class LunaScript(TextEmbed):
             else:
                 channel = msgble
 
-            self.script_ctx = ScriptContext(bot, args=args, channel=channel, **kwargs)
+            self.script_ctx = ScriptContext(kwargs.pop('bot'), args=kwargs.pop('args'), channel=channel, **kwargs)
             self.msgble = msgble
         self.parser = LunaScriptParser(self.script_ctx)
+
+    @classmethod 
+    def from_layout(cls, msgble, layout, **kwargs):
+        return cls(msgble, layout.content, layout.embed, **kwargs)
 
     async def send(self):
         try:
