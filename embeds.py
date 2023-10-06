@@ -50,7 +50,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
                 query = 'INSERT INTO embeds (creator_id, name, embed) VALUES (?, ?, ?)'
                 await conn.execute(query, (ctx.author.id, name.lower(), data))
                 await conn.commit()
-                self.bot.embeds[name.lower()] = view.current_embed
+                self.bot.embeds[name.lower()] = discord.Embed.from_dict(json.loads(data))
 
             await ctx.send(f'Added your embed `{name.lower()}`!')
     
@@ -77,7 +77,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
                 query = 'UPDATE embeds SET embed = ? WHERE name = ?'
                 await conn.execute(query, (data, name.lower()))
                 await conn.commit()
-                self.bot.embeds[name.lower()] = view.current_embed
+                self.bot.embeds[name.lower()] = discord.Embed.from_dict(json.loads(data))
 
             await ctx.send(f'Edited the embed `{name.lower()}`!')
     
