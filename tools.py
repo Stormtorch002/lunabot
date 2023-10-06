@@ -5,7 +5,7 @@ from discord import ui
 from discord.utils import escape_markdown
 from embed_editor.editor import EmbedEditor
 import discord 
-from lunascript import ScriptContext, LunaScriptParser, clean 
+from lunascript import ScriptContext, LunaScript, LunaScriptParser, clean 
 import inspect 
 import importlib 
 
@@ -118,6 +118,25 @@ class Tools(commands.Cog, description='storchs tools'):
         self.bot.layouts[name.lower()] = (text, embed)
         await ctx.send(f'Set the layout `{name.lower()}`!')
 
+    @commands.command()
+    async def viewlayout(self, ctx, *, name):
+        if name.lower() not in self.bot.layouts:
+            await ctx.send('There is no layout with that name.', ephemeral=True)
+            return
+        text, embed = self.bot.layouts[name.lower()]
+        embed = self.bot.embeds[embed]
+        
+        ls = LunaScript(ctx, text, embed)
+        await ls.send()
+    
+    @commands.command()
+    async def viewrawlayout(self, ctx, *, name):
+        if name.lower() not in self.bot.layouts:
+            await ctx.send('There is no layout with that name.', ephemeral=True)
+            return
+        text, embed = self.bot.layouts[name.lower()]
+        embed = self.bot.embeds[embed]
+        await ctx.send(text, embed=embed)
 
     @commands.command()
     async def grabembed(self, ctx, url):

@@ -10,9 +10,17 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
 
     def __init__(self, bot):
         self.bot = bot 
+        self.bot.embeds = {}
 
     async def cog_check(self, ctx):
         return ctx.author.guild_permissions.administrator or ctx.author.id == self.bot.owner_id
+    
+    async def cog_load(self):
+        query = 'SELECT name, embed FROM embeds'
+        rows = await self.bot.db.fetch(query)
+        for row in rows:
+            self.bot.embeds[row['name']] = discord.Embed.from_dict(json.loads(row['embed']))
+
     
     @commands.hybrid_group()
     async def embed(self, ctx):
@@ -42,6 +50,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
                 query = 'INSERT INTO embeds (creator_id, name, embed) VALUES (?, ?, ?)'
                 await conn.execute(query, (ctx.author.id, name.lower(), data))
                 await conn.commit()
+                self.bot.embeds[name.lower()] = view.current_embed
 
             await ctx.send(f'Added your embed `{name.lower()}`!')
     
@@ -68,6 +77,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
                 query = 'UPDATE embeds SET embed = ? WHERE name = ?'
                 await conn.execute(query, (data, name.lower()))
                 await conn.commit()
+                self.bot.embeds[name.lower()] = view.current_embed
 
             await ctx.send(f'Edited the embed `{name.lower()}`!')
     
@@ -95,6 +105,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
             query = 'DELETE FROM embeds WHERE name = ?'
             await conn.execute(query, (name.lower(),))
             await conn.commit()
+            self.bot.embeds.pop(name.lower(), None)
 
         await ctx.send(f'Deleted the embed `{name.lower()}`!')
         
