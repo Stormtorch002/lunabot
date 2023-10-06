@@ -1,4 +1,5 @@
 from discord.ext import commands 
+import asyncio
 import json 
 from discord import ui 
 from discord.utils import escape_markdown
@@ -13,10 +14,14 @@ class Tools(commands.Cog, description='storchs tools'):
     
     def __init__(self, bot):
         self.bot = bot 
+        self.bot.layouts = {}
 
     async def cog_load(self):
         with open('vars.json') as f:
             self.bot.vars = json.load(f)
+        
+        rows = await self.bot.db.fetch('select * from layouts')
+        self.bot.layouts = {row['name']: (row['content'], row['embed']) for row in rows}
     
     async def cog_unload(self):
         with open('vars.json', 'w') as f:
@@ -70,6 +75,49 @@ class Tools(commands.Cog, description='storchs tools'):
     async def lseval(self, ctx, *, string):
         parser = LunaScriptParser(ScriptContext.from_ctx(ctx))
         await ctx.send(await parser.parse(string))
+
+    @commands.command()
+    async def setlayout(self, ctx, *, name):
+        temp = await ctx.send('Enter the text portion of the layout, or `skip` to skip.')
+        
+        def check(m):
+            return m.author == ctx.author and m.channel == ctx.channel
+        
+        try:
+            msg = await self.bot.wait_for('message', check=check, timeout=300)
+        except asyncio.TimeoutError:
+            await temp.delete()
+            return 
+        
+        if msg.content.lower() == 'skip':
+            text = None
+            prompt = 'Enter the name of the layout\'s embed.'
+        else:
+            text = msg.content
+            prompt = 'Enter the name of the layout\'s embed, or `skip` to skip.'
+        
+        temp = await ctx.send(prompt)
+        try:
+            msg = await self.bot.wait_for('message', check=check, timeout=60)
+        except asyncio.TimeoutError:
+            await temp.delete()
+            return
+        
+        if text is not None and msg.content.lower() == 'skip':
+            embed = None
+        else:
+            query = 'select name from embeds where name = ?'
+            x = await self.bot.db.fetchval(query, msg.content.lower())
+            if not x:
+                await ctx.send('There is no embed with that name.', ephemeral=True)
+                return
+            embed = msg.content.lower()
+        
+        query = 'insert into layouts (name, content, embed) values (?, ?, ?) on conflict (name) do update set content = ?, embed = ?'
+        await self.bot.db.execute(query, name.lower(), text, embed, text, embed)
+        self.layouts[name.lower()] = (text, embed)
+        await ctx.send(f'Set the layout `{name.lower()}`!')
+
 
     @commands.command()
     async def grabembed(self, ctx, url):
