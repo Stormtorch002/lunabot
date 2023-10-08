@@ -64,7 +64,9 @@ class RedeemView(ui.View):
 
         for i, choice in enumerate(choices):
             i += 1
-            self.add_item(ui.Button(label=str(i), custom_id=str(powerups.index(choice)), style=discord.ButtonStyle.blurple, row=i, callback=callback))
+            btn = ui.Button(label=str(i), custom_id=str(powerups.index(choice)), style=discord.ButtonStyle.blurple, row=i)
+            btn.callback = callback
+            self.add_item(btn)
         
 
 class Powerup:
