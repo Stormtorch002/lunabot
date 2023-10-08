@@ -561,7 +561,7 @@ class ServerEvent(commands.Cog):
         
         embed = discord.Embed(color=0xcab7ff, title='Use a Powerup')
         for i, powerup_i in enumerate(powerups):
-            embed.add_field(name=f'**{i+1}** {self.powerups[powerup_i]}', inline=False)
+            embed.add_field(name=f'{i+1}', value=self.powerups[powerup_i], inline=False)
         embed.set_footer(text='Type the number to use the powerup')
 
         temp = await ctx.send(embed=embed)
