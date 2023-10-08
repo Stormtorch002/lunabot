@@ -221,7 +221,9 @@ class LunaScript(TextEmbed):
         if self.embed.title:
             self.embed.title = await self.parser.parse(self.embed.title)
         if self.embed.description:
+            print('banana')
             self.embed.description = await self.parser.parse( self.embed.description)
+            print('banana')
         for field in self.embed.fields:
             field.name = await self.parser.parse(field.name)
             field.value = await self.parser.parse(field.value)
@@ -258,7 +260,6 @@ class LunaScriptParser:
         self.vars = self.script_ctx.bot.vars  
         self.args = self.script_ctx.args
 
-        print(self.args)
         
     async def parse(self, text):
         return await self.script_ctx.bot.loop.run_in_executor(None, self.parse_sync, text)
