@@ -263,7 +263,8 @@ class ServerEvent(commands.Cog):
         self.msgs_needed = 3 # random.randint(15, 35)
         self.msg_counter = 3  
         self.has_welcomed = set() 
-
+        self.test = [2, 3, 4]
+        
         self.powerups_1k = [
             'Receive 15-20 points',
             'Steal 10-15 points from the other team',
@@ -465,7 +466,7 @@ class ServerEvent(commands.Cog):
             self.msgs_needed = 3
             if random.choice([True, False]):
                 layout = Layout.from_name(self.bot, 'powerup_spawn')
-                powerup_i = self.generate_powerup()
+                powerup_i = next(self.test)# self.generate_powerup()
                 powerup_name = self.powerups_chat[powerup_i]
                 ls = LunaScript.from_layout(msg.channel, layout, args={'powerupname': powerup_name})
                 spawn = await ls.send()
