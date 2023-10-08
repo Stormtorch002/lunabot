@@ -220,13 +220,10 @@ class LunaScript(TextEmbed):
     async def transform_embed(self):
         if self.embed is None:
             return 
-        
         if self.embed.title:
             self.embed.title = await self.parser.parse(self.embed.title)
         if self.embed.description:
-            print('banana')
             self.embed.description = await self.parser.parse(self.embed.description)
-            print('banana')
         for field in self.embed.fields:
             field.name = await self.parser.parse(field.name)
             field.value = await self.parser.parse(field.value)
