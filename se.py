@@ -528,7 +528,7 @@ class ServerEvent(commands.Cog):
 
         embed = discord.Embed(color=0xcab7ff, title='Redeem a Powerup') 
         for i, choice in enumerate(choices):
-            embed.add_field(name=f'**{i+1}.** {choice[0]}', inline=False)
+            embed.add_field(name=f'{i+1}', value=choice[0], inline=False)
          
         view = RedeemView(choices, self.powerups_1k)
         msg = await ctx.send(embed=embed, view=view)
