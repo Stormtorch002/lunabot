@@ -261,7 +261,7 @@ class ServerEvent(commands.Cog):
         self.general_id = 899725913586032701
         self.channel_ids = {1158930467337293905, 1158931468664446986, self.general_id}
         self.msgs_needed = 3 # random.randint(15, 35)
-        self.msg_counter = 0 
+        self.msg_counter = 3  
         self.has_welcomed = set() 
 
         self.powerups_1k = [
@@ -405,17 +405,18 @@ class ServerEvent(commands.Cog):
             '<:LC_alpha_D_NF2U:1113244889224859660>': 3
         }
 
+        for emoji in emojis:
+            await msg.add_reaction(emoji)
+
         def check(r, u):
             return r.message == msg and u.id == player.member.id and str(r.emoji) in emojis
         
         try:
             reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=45)
         except asyncio.TimeoutError:
-            await msg.delete()
             await channel.send('You did not answer in time!', delete_after=5)
             return
         
-        await msg.delete()
         if emojis[str(reaction.emoji)] == choices.index(a):
             if not steal:
                 await player.add_points(points, 'trivia')
