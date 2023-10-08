@@ -69,10 +69,8 @@ class RedeemView(ui.View):
             self.add_item(btn)
         
 
-class Powerup:
-    pass 
 
-class PowerupEffect(Powerup):
+class Powerup:
     def __init__(self, end):
         self.end = end
 
