@@ -57,7 +57,7 @@ class ScriptContext:
                 self.args[f'${i+1}'] = arg 
         elif isinstance(args, dict):
             for name, val in args.items():
-                self.args[f'{name}'] = val
+                self.args[name] = val
 
         self.vars_builtin_tuples = {
             ('serverid',): self.serverid,
@@ -196,7 +196,9 @@ class LunaScript(TextEmbed):
             else:
                 channel = msgble
 
-            self.script_ctx = ScriptContext(kwargs.pop('bot'), args=kwargs.pop('args'), channel=channel, **kwargs)
+            args = kwargs.pop('args', None)
+            print(args)
+            self.script_ctx = ScriptContext(kwargs.pop('bot'), args=args, channel=channel, **kwargs)
             self.msgble = msgble
         self.parser = LunaScriptParser(self.script_ctx)
 
@@ -437,6 +439,7 @@ class LunaScriptParser:
                         repl = self.args[varname]
                     else:
                         repl = ''
+                    print(repl)
                     newstr.extend([char for char in str(repl)])
                     i += j - i + 1
                 else:
