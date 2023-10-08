@@ -317,6 +317,8 @@ class ServerEvent(commands.Cog):
         
             team = row['team']
             if team not in self.teams:
+                query = 'insert into redeems (team, number) values (?, 0) on conflict (team) do nothing'
+                await self.bot.db.execute(query, team)
                 query = 'select number from redeems where team = ?'
                 redeems = await self.bot.db.fetchval(query, team)
                 query = 'select option from saved_powerups where team = ?'
