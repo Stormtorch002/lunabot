@@ -197,7 +197,6 @@ class LunaScript(TextEmbed):
                 channel = msgble
 
             args = kwargs.pop('args', None)
-            print(args)
             self.script_ctx = ScriptContext(kwargs.pop('bot'), args=args, channel=channel, **kwargs)
             self.msgble = msgble
         self.parser = LunaScriptParser(self.script_ctx)
@@ -259,6 +258,8 @@ class LunaScriptParser:
         self.vars = self.script_ctx.bot.vars  
         self.args = self.script_ctx.args
 
+        print(self.args)
+        
     async def parse(self, text):
         return await self.script_ctx.bot.loop.run_in_executor(None, self.parse_sync, text)
 
@@ -431,15 +432,17 @@ class LunaScriptParser:
                     while j < len(string) and string[j] != '}':
                         j += 1
                     varname = ''.join(string[i+1:j])
+                    print(varname)
                     if varname in self.vars_builtin:
                         repl = self.vars_builtin[varname]()
                     elif varname in self.vars:
                         repl = self.vars[varname]
                     elif varname in self.args:
+                        print('hi')
                         repl = self.args[varname]
                     else:
                         repl = ''
-                    print(repl)
+                    
                     newstr.extend([char for char in str(repl)])
                     i += j - i + 1
                 else:
