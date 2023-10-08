@@ -17,7 +17,7 @@ OPTION4_TIME = 30
 OPTION5_TIME = 30 
 OPTION5_CD = 10 
 LOW_PERIOD = 100 
-HIGH_PERIOD = 3 
+HIGH_PERIOD = 1000 
 INDIV_REDUCED_CD = 1 
 TEAM_REDUCED_CD = 1 
 BASE_CD = 3 
@@ -260,7 +260,7 @@ class ServerEvent(commands.Cog):
         self.guild_id = 899108709450543115
         self.general_id = 899725913586032701
         self.channel_ids = {1158930467337293905, 1158931468664446986, self.general_id}
-        self.msgs_needed = random.randint(15, 35)
+        self.msgs_needed = 3 # random.randint(15, 35)
         self.msg_counter = 0 
         self.has_welcomed = set() 
 
@@ -456,7 +456,8 @@ class ServerEvent(commands.Cog):
         self.msg_counter += 1
         if self.msg_counter >= self.msgs_needed:
             self.msg_counter = 0 
-            self.msgs_needed = random.randint(15, 35)
+            # self.msgs_needed = random.randint(15, 35)
+            self.msgs_needed = 3
             if random.choice([True, False]):
                 layout = Layout.from_name(self.bot, 'powerup_spawn')
                 powerup_i = self.generate_powerup()
