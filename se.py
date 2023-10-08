@@ -328,9 +328,9 @@ class ServerEvent(commands.Cog):
             powerups = []
             for row in rows:
                 if row['name'] == 'Multiplier':
-                    powerups.append(Multiplier(row['value'], row['end']))
+                    powerups.append(Multiplier(row['value'], row['end_time']))
                 elif row['name'] == 'Cooldown Reducer':
-                    powerups.append(CooldownReducer(row['value'], row['end']))
+                    powerups.append(CooldownReducer(row['value'], row['end_time']))
 
             query = 'select msgs, points from se_stats where user_id = ?'
             row = await self.bot.db.fetchrow(query, member.id)
