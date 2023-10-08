@@ -381,10 +381,10 @@ class ServerEvent(commands.Cog):
         points = random.randint(1, 5) 
         args = {
             'question': q,
-            'ans1': choices[0],
-            'ans2': choices[1],
-            'ans3': choices[2],
-            'ans4': choices[3],
+            'ans1': f'*{choices[0]}*',
+            'ans2': f'*{choices[1]}*',
+            'ans3': f'*{choices[2]}*',
+            'ans4': f'*{choices[3]}*',
             'points': points,
             'eventnick': player.nick,
             'teamname': player.team.name.capitalize(),
@@ -414,7 +414,9 @@ class ServerEvent(commands.Cog):
         try:
             reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=45)
         except asyncio.TimeoutError:
-            await channel.send('You did not answer in time!', delete_after=5)
+            layout = Layout.from_name(self.bot, 'trivia_timeout') 
+            ls = LunaScript.from_layout(channel, layout)
+            await ls.reply(msg)
             return
         
         if emojis[str(reaction.emoji)] == choices.index(a):

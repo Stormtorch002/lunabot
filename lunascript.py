@@ -207,6 +207,16 @@ class LunaScript(TextEmbed):
     def from_layout(cls, msgble, layout, **kwargs):
         return cls(msgble, layout.content, layout.embed, bot=layout.bot, **kwargs)
 
+    async def reply(self, msg):
+        try:
+            if self.text is None:
+                text = None 
+            else:
+                text = await self.parser.parse(self.text)
+            return await msg.reply(text, embed=await self.transform_embed())
+        except LunaScriptError as e:
+            return await msg.reply(f'An error occurred while parsing the LunaScript: `{e}`')
+
     async def send(self):
         try:
             if self.text is None:
