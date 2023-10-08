@@ -111,7 +111,6 @@ class Team:
         self.redeems += 1
         query = 'update redeems set number = number + 1 where team = ?'
         await self.captain.bot.db.execute(query, self.name)
-
         args = {
             'messages': self.msg_count,
             'captainping': self.captain.member.mention,
