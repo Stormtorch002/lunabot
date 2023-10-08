@@ -530,7 +530,7 @@ class ServerEvent(commands.Cog):
         for i, choice in enumerate(choices):
             embed.add_field(name=f'{i+1}', value=choice[0], inline=False)
          
-        view = RedeemView(choices, self.powerups_1k)
+        view = RedeemView(ctx, choices, self.powerups_1k)
         msg = await ctx.send(embed=embed, view=view)
         await view.wait()
 
