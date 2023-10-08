@@ -314,6 +314,7 @@ class ServerEvent(commands.Cog):
             if member is None:
                 continue 
         
+            print('A')
             team = row['team']
             if team not in self.teams:
                 query = 'select number from redeems where team = ?'
@@ -321,6 +322,8 @@ class ServerEvent(commands.Cog):
                 query = 'select option from saved_powerups where team = ?'
                 saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team)]
                 self.teams[team] = Team(team, [], self.bot.get_channel(channels[team]), redeems, saved_powerups)
+            
+            print('B')
             
             query = 'select name, value, end from powerups where user_id = ? and end > ?'
             row = await self.bot.db.fetch(query, member.id, time.time())
@@ -331,6 +334,7 @@ class ServerEvent(commands.Cog):
                 elif row['name'] == 'Cooldown Reducer':
                     powerups.append(CooldownReducer(row['value'], row['end']))
 
+            print('C')
             query = 'select msgs, points from se_stats where user_id = ?'
             row = await self.bot.db.fetchrow(query, member.id)
 
@@ -339,6 +343,7 @@ class ServerEvent(commands.Cog):
             self.teams[team].players.append(player)
             self.teams[team].msg_count += player.msg_count
         
+            print('D')
         print('3')
         team1 = self.teams['bunny']
         team2 = self.teams['kitty']
