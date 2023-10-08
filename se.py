@@ -323,7 +323,7 @@ class ServerEvent(commands.Cog):
                 saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team)]
                 self.teams[team] = Team(team, [], self.bot.get_channel(channels[team]), redeems, saved_powerups)
             
-            query = 'select name, value, end_time from powerups where user_id = ? and end > ?'
+            query = 'select name, value, end_time from powerups where user_id = ? and end_time > ?'
             row = await self.bot.db.fetch(query, member.id, time.time())
             powerups = []
             for row in rows:
