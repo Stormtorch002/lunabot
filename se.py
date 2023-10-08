@@ -514,15 +514,15 @@ class ServerEvent(commands.Cog):
 
     @commands.command()
     async def redeem(self, ctx):
-        for team in self.teams.values():
-            if ctx.author == team.captain:
-                break 
-        else:
-            return 
+        # for team in self.teams.values():
+        #     if ctx.author == team.captain:
+        #         break 
+        # else:
+        #     return 
+        team = self.players[ctx.author.id].team
         
         if team.redeems == 0:
             return await ctx.send('You have no more powerups to redeem!')
-        
 
         choices = random.sample(self.powerups_1k, 3)
 
