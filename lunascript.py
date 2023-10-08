@@ -222,15 +222,15 @@ class LunaScript(TextEmbed):
             self.embed.title = await self.parser.parse(self.embed.title)
         if self.embed.description:
             print('banana')
-            self.embed.description = await self.parser.parse( self.embed.description)
+            self.embed.description = await self.parser.parse(self.embed.description)
             print('banana')
         for field in self.embed.fields:
             field.name = await self.parser.parse(field.name)
             field.value = await self.parser.parse(field.value)
         if self.embed.author.name is not None:
-            self.embed.set_author(name=await self.parser.parse( self.embed.author.name), icon_url=self.embed.author.icon_url)
+            self.embed.set_author(name=await self.parser.parse(self.embed.author.name), icon_url=self.embed.author.icon_url)
         if self.embed.footer.text is not None:
-            self.embed.set_footer(text=await self.parser.parse( self.embed.footer.text), icon_url=self.embed.footer.icon_url)
+            self.embed.set_footer(text=await self.parser.parse(self.embed.footer.text), icon_url=self.embed.footer.icon_url)
         return self.embed
         
 
@@ -267,6 +267,7 @@ class LunaScriptParser:
     def parse_sync(self, text):
         
         def ordered_eval(string):
+            print(string)
             string = [char for char in string]
             newstr = []
             i = 0
