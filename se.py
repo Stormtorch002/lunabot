@@ -98,11 +98,14 @@ class Team:
         for player in self.players:
             player.team = self
 
-        self.captain = self.players[0]
+        self.captain = None 
         self.msg_count = 0
         self.redeems = redeems 
         self.saved_powerups = saved_powerups
         self.opp = None 
+    
+    def create_captain(self):
+        self.captain = self.players[0]
 
     async def on_1000(self):
         self.redeems += 1
@@ -299,13 +302,11 @@ class ServerEvent(commands.Cog):
             718475543061987329: 'Storch'
         }
 
-        print('1')
         for team, members in playerdict.items():
             query = 'insert into se_stats (user_id, team, points, msgs) values (?, ?, 0, 0) on conflict (user_id) do nothing'
             for member in members:
                 await self.bot.db.execute(query, member, team)
             
-        print('2')
         rows = await self.bot.db.fetch('select * from se_stats')
         self.guild = self.bot.get_guild(self.guild_id)
 
@@ -314,20 +315,13 @@ class ServerEvent(commands.Cog):
             if member is None:
                 continue 
         
-            print('A')
             team = row['team']
             if team not in self.teams:
                 query = 'select number from redeems where team = ?'
                 redeems = await self.bot.db.fetchval(query, team)
-                print('B')
                 query = 'select option from saved_powerups where team = ?'
                 saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team)]
-                print('C')
                 self.teams[team] = Team(team, [], self.bot.get_channel(channels[team]), redeems, saved_powerups)
-                print('D')
-            
-        
-            print('B')
             
             query = 'select name, value, end from powerups where user_id = ? and end > ?'
             row = await self.bot.db.fetch(query, member.id, time.time())
@@ -338,7 +332,6 @@ class ServerEvent(commands.Cog):
                 elif row['name'] == 'Cooldown Reducer':
                     powerups.append(CooldownReducer(row['value'], row['end']))
 
-            print('C')
             query = 'select msgs, points from se_stats where user_id = ?'
             row = await self.bot.db.fetchrow(query, member.id)
 
@@ -347,19 +340,17 @@ class ServerEvent(commands.Cog):
             self.teams[team].players.append(player)
             self.teams[team].msg_count += player.msg_count
         
-            print('D')
-        print('3')
         team1 = self.teams['bunny']
         team2 = self.teams['kitty']
+        team1.create_captain()
+        team2.create_captain()
         team1.opp = team2
         team2.opp = team1
 
-        print('4')
         self.questions = questions 
         random.shuffle(self.questions)
         self.questions_i = 0
 
-        print('5')
 
     async def cog_check(self, ctx):
         return ctx.author.id in self.players or ctx.author.id == 718475543061987329
