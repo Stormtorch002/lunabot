@@ -51,9 +51,12 @@ class ScriptContext:
         self.vars = self.bot.vars
 
         self.args = {}
-        if args is not None:
+        if isinstance(args, list) or isinstance(args, tuple):
             for i, arg in enumerate(args):
                 self.args[f'${i+1}'] = arg 
+        elif isinstance(args, dict):
+            for name, val in args.items():
+                self.args[f'{name}'] = val
 
         self.vars_builtin_tuples = {
             ('serverid',): self.serverid,
@@ -206,9 +209,9 @@ class LunaScript(TextEmbed):
                 text = None 
             else:
                 text = await self.parser.parse(self.text)
-            await self.msgble.send(text, embed=await self.transform_embed())
+            return await self.msgble.send(text, embed=await self.transform_embed())
         except LunaScriptError as e:
-            await self.msgble.send(f'An error occurred while parsing the LunaScript: `{e}`')
+            return await self.msgble.send(f'An error occurred while parsing the LunaScript: `{e}`')
 
     async def transform_embed(self):
         if self.embed is None:
