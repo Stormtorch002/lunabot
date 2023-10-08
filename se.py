@@ -332,6 +332,7 @@ class ServerEvent(commands.Cog):
                 elif row['name'] == 'Cooldown Reducer':
                     powerups.append(CooldownReducer(row['value'], row['end_time']))
 
+            print('1')
             query = 'select msgs, points from se_stats where user_id = ?'
             row = await self.bot.db.fetchrow(query, member.id)
 
@@ -339,7 +340,9 @@ class ServerEvent(commands.Cog):
             self.players[member.id] = player 
             self.teams[team].players.append(player)
             self.teams[team].msg_count += player.msg_count
-        
+            print('2')
+
+        print('a')
         team1 = self.teams['bunny']
         team2 = self.teams['kitty']
         team1.create_captain()
@@ -347,6 +350,7 @@ class ServerEvent(commands.Cog):
         team1.opp = team2
         team2.opp = team1
 
+        print('b')
         self.questions = questions 
         random.shuffle(self.questions)
         self.questions_i = 0
