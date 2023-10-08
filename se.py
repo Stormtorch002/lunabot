@@ -326,7 +326,7 @@ class ServerEvent(commands.Cog):
             
             print('0')
             query = 'select name, value, end_time from powerups where user_id = ? and end_time > ?'
-            row = await self.bot.db.fetch(query, member.id, time.time())
+            rows = await self.bot.db.fetch(query, member.id, time.time())
             powerups = []
             for row in rows:
                 if row['name'] == 'Multiplier':
