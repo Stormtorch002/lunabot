@@ -263,7 +263,7 @@ class ServerEvent(commands.Cog):
         self.msgs_needed = 3 # random.randint(15, 35)
         self.msg_counter = 3  
         self.has_welcomed = set() 
-        self.test = [2, 3, 4]
+        self.test = iter([2, 3, 4])
         
         self.powerups_1k = [
             'Receive 15-20 points',
