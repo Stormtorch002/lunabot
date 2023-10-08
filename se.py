@@ -546,8 +546,8 @@ class ServerEvent(commands.Cog):
         query = 'insert into saved_powerups (team, option, time) values (?, ?, ?)'
         await self.bot.db.execute(query, team.name, int(view.custom_id), int(time.time()))
 
-        choice = choices[int(view.custom_id) - 1][0]
-        await view.inter.response.edit_message(content=f'**You have redeemed:**\n`{choice}`\n\nUse `!usepowerup` to use it anytime!', view=None)
+        choice = choices[int(view.custom_id) - 1]
+        await view.inter.response.edit_message(content=f'**You have redeemed:**\n`{choice}`\n\nUse `!usepowerup` to use it anytime!', embed=None, view=None)
     
     @commands.command()
     async def usepowerup(self, ctx):
