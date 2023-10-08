@@ -293,7 +293,7 @@ class ServerEvent(commands.Cog):
     async def cog_load(self):
 
         playerdict = {
-            'bunny': [496225545529327616, 718475543061987329],
+            'bunny': [718475543061987329,496225545529327616, ],
             'kitty': [687661271989878860]
         }
         channels = {
