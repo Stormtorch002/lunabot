@@ -284,6 +284,7 @@ class ServerEvent(commands.Cog):
             return 4
 
     async def cog_load(self):
+
         playerdict = {
             'bunny': [496225545529327616, 718475543061987329],
             'kitty': [687661271989878860]
@@ -298,11 +299,13 @@ class ServerEvent(commands.Cog):
             718475543061987329: 'Storch'
         }
 
+        print('1')
         for team, members in playerdict.items():
             query = 'insert into se_stats (user_id, team, points, msgs) values (?, ?, 0, 0) on conflict (user_id) do nothing'
             for member in members:
                 await self.bot.db.execute(query, member, team)
             
+        print('2')
         rows = await self.bot.db.fetch('select * from se_stats')
         self.guild = self.bot.get_guild(self.guild_id)
 
@@ -336,14 +339,18 @@ class ServerEvent(commands.Cog):
             self.teams[team].players.append(player)
             self.teams[team].msg_count += player.msg_count
         
+        print('3')
         team1 = self.teams['bunny']
         team2 = self.teams['kitty']
         team1.opp = team2
         team2.opp = team1
 
+        print('4')
         self.questions = questions 
         random.shuffle(self.questions)
         self.questions_i = 0
+
+        print('5')
 
     async def cog_check(self, ctx):
         return ctx.author.id in self.players or ctx.author.id == 718475543061987329
