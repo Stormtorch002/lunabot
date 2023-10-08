@@ -585,7 +585,7 @@ class ServerEvent(commands.Cog):
         powerup = powerups[int(msg.content) - 1]
         team.saved_powerups.remove(powerup)
         query = 'delete from saved_powerups where team = ? and option = ? limit 1'
-        await self.bot.db.execute(query, team.name, self.powerups_1k.index(powerup))
+        await self.bot.db.execute(query, team.name, powerup)
 
         if powerup == 0:
             n = await team.option1()
