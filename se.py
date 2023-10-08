@@ -16,8 +16,8 @@ OPTION3_TIME = 30
 OPTION4_TIME = 30 
 OPTION5_TIME = 30 
 OPTION5_CD = 10 
-LOW_PERIOD = 5 
-HIGH_PERIOD = 10
+LOW_PERIOD = 100 
+HIGH_PERIOD = 3 
 INDIV_REDUCED_CD = 1 
 TEAM_REDUCED_CD = 1 
 BASE_CD = 3 
@@ -110,9 +110,14 @@ class Team:
     async def on_1000(self):
         self.redeems += 1
         query = 'update redeems set number = number + 1 where team = ?'
-        await self.bot.db.execute(query, self.name)
+        await self.captain.bot.db.execute(query, self.name)
+
+        args = {
+            'messages': self.msg_count,
+            'captainping': self.captain.member.mention,
+        }
         layout = Layout.from_name(self.captain.bot, '1k_private')
-        ls = LunaScript.from_layout(self.channel, layout)
+        ls = LunaScript.from_layout(self.channel, layout, args=args)
         await ls.send()
     
     async def option1(self):
