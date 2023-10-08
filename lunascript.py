@@ -21,7 +21,7 @@ class Layout:
         if embed is None:
             self.embed = None 
         else:
-            self.embed = discord.Embed.from_dict(embed)
+            self.embed = discord.Embed.from_dict(bot.embeds[embed])
     
     @classmethod
     def from_name(cls, bot, name):
