@@ -198,7 +198,7 @@ class LunaScript(TextEmbed):
 
     @classmethod 
     def from_layout(cls, msgble, layout, **kwargs):
-        return cls(msgble, layout.content, layout.embed, **kwargs)
+        return cls(msgble, layout.content, layout.embed, bot=layout.bot, **kwargs)
 
     async def send(self):
         try:
