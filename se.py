@@ -207,7 +207,7 @@ class Player:
         args = {
             'points': bonus,
             'eventnick': self.nick,
-            'teamname': self.team.name,
+            'teamname': self.team.name.capitalize(),
         }
         ls = LunaScript.from_layout(self.member, layout, args=args)
         await ls.send()
@@ -387,7 +387,7 @@ class ServerEvent(commands.Cog):
             'ans4': choices[3],
             'points': points,
             'eventnick': player.nick,
-            'teamname': player.team.name,
+            'teamname': player.team.name.capitalize(),
         }
         if not steal:
             layout = Layout.from_name(self.bot, 'trivia')
@@ -425,6 +425,8 @@ class ServerEvent(commands.Cog):
                 await player.team.opp.captain.remove_points(points, 'steal_trivia')
                 await player.add_points(points, 'steal_trivia')
                 await channel.send(f'You got the answer right! You stole **{points}** points from the other team.')
+        else:
+            await channel.send(f'You got the answer wrong! The correct answer was **{a}**.')
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -511,7 +513,7 @@ class ServerEvent(commands.Cog):
                 if layout is not None:
                     args = {
                         'eventnick': player.nick,
-                        'teamname': player.team.name,
+                        'teamname': player.team.name.capitalize(),
                     }                    
                     ls = LunaScript.from_layout(msg.channel, layout, args=args, member=player.member)
                     await ls.send()
