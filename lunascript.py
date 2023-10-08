@@ -26,9 +26,6 @@ class Layout:
         return cls(bot, name, bot.layouts[name][0], bot.layouts[name][1])
     
     
-
-        
-        
 def clean(token):
     try:
         token = int(token)

@@ -382,10 +382,10 @@ class ServerEvent(commands.Cog):
             'teamname': player.team.name,
         }
         if not steal:
-            layout = Layout.from_name('trivia')
+            layout = Layout.from_name(self.bot, 'trivia')
         else:
             args['otherteamname'] = player.team.opp.name
-            layout = Layout.from_name('steal_trivia')
+            layout = Layout.from_name(self.bot, 'steal_trivia')
 
         ls = LunaScript.from_layout(channel, layout, args=args)
         msg = await ls.send()
@@ -450,7 +450,7 @@ class ServerEvent(commands.Cog):
             self.msg_counter = 0 
             self.msgs_needed = random.randint(15, 35)
             if random.choice([True, False]):
-                layout = Layout.from_name('powerup_spawn')
+                layout = Layout.from_name(self.bot, 'powerup_spawn')
                 powerup_i = self.generate_powerup()
                 powerup_name = self.powerups_chat[powerup_i]
                 ls = LunaScript.from_layout(msg.channel, layout, args={'powerupname': powerup_name})
@@ -480,7 +480,7 @@ class ServerEvent(commands.Cog):
                         if other != player:
                             await other.apply_powerup(CooldownReducer(TEAM_REDUCED_CD, time.time() + TEAM_REDUCED_CD_TIME))
 
-                    layout = Layout.from_name('reduced_cd')
+                    layout = Layout.from_name(self.bot, 'reduced_cd')
                 elif powerup_i == 3:
                     await player.apply_powerup(Multiplier(2, time.time() + INDIV_DOUBLE_TIME))
 
@@ -488,7 +488,7 @@ class ServerEvent(commands.Cog):
                         if other != player:
                             await other.apply_powerup(Multiplier(2, time.time() + TEAM_DOUBLE_TIME))
 
-                    layout = Layout.from_name('double')
+                    layout = Layout.from_name(self.bot, 'double')
                 else:
                     await player.apply_powerup(Multiplier(3, time.time() + INDIV_TRIPLE_TIME))
 
@@ -496,7 +496,7 @@ class ServerEvent(commands.Cog):
                         if other != player:
                             await other.apply_powerup(Multiplier(3, time.time() + TEAM_TRIPLE_TIME))
 
-                    layout = Layout.from_name('triple')
+                    layout = Layout.from_name(self.bot, 'triple')
 
                 if layout is not None:
                     args = {
