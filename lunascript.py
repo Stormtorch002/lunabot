@@ -175,12 +175,14 @@ class ScriptContext:
         return get_level(self.bot.xp_cache[int(memberid)])
 
 
-
     
 class TextEmbed:
     def __init__(self, text=None, embed=None):
         self.text = text 
-        self.embed = embed 
+        if embed is None:
+            self.embed = None 
+        else:
+            self.embed = embed.copy()
 
 
 class LunaScript(TextEmbed):
@@ -218,6 +220,7 @@ class LunaScript(TextEmbed):
     async def transform_embed(self):
         if self.embed is None:
             return 
+        
         if self.embed.title:
             self.embed.title = await self.parser.parse(self.embed.title)
         if self.embed.description:
