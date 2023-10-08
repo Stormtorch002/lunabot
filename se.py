@@ -176,7 +176,7 @@ class Player:
             self.cds.remove(powerup.n)
 
     async def apply_powerup(self, powerup):
-        query = 'insert into powerups (user_id, name, value, end) values (?, ?, ?, ?)'
+        query = 'insert into powerups (user_id, name, value, end_time) values (?, ?, ?, ?)'
         await self.bot.db.execute(query, self.member.id, powerup.name, powerup.n, powerup.end)
         self.bot.loop.create_task(self.task(powerup))
 
@@ -323,7 +323,7 @@ class ServerEvent(commands.Cog):
                 saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team)]
                 self.teams[team] = Team(team, [], self.bot.get_channel(channels[team]), redeems, saved_powerups)
             
-            query = 'select name, value, end from powerups where user_id = ? and end > ?'
+            query = 'select name, value, end_time from powerups where user_id = ? and end > ?'
             row = await self.bot.db.fetch(query, member.id, time.time())
             powerups = []
             for row in rows:
