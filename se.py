@@ -319,10 +319,14 @@ class ServerEvent(commands.Cog):
             if team not in self.teams:
                 query = 'select number from redeems where team = ?'
                 redeems = await self.bot.db.fetchval(query, team)
+                print('B')
                 query = 'select option from saved_powerups where team = ?'
                 saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team)]
+                print('C')
                 self.teams[team] = Team(team, [], self.bot.get_channel(channels[team]), redeems, saved_powerups)
+                print('D')
             
+        
             print('B')
             
             query = 'select name, value, end from powerups where user_id = ? and end > ?'
