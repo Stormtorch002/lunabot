@@ -240,7 +240,7 @@ class Player:
             'messages': self.msg_count,
         }
         layout = Layout.from_name(self.bot, '500_bonus')
-        ls = LunaScript.from_layout(self.member.team.channel, layout, args=args)
+        ls = LunaScript.from_layout(self.team.channel, layout, args=args)
         await ls.send()
 
     
