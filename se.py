@@ -240,7 +240,7 @@ class Player:
             'messages': self.msg_count,
         }
         layout = Layout.from_name(self.bot, '500_bonus')
-        ls = LunaScript.from_layout(self.team.channel, layout, args=args)
+        ls = LunaScript.from_layout(self.team.channel, layout, args=args, member=self.member)
         await ls.send()
 
     
@@ -387,7 +387,7 @@ class ServerEvent(commands.Cog):
             args['otherteamname'] = player.team.opp.name
             layout = Layout.from_name(self.bot, 'steal_trivia')
 
-        ls = LunaScript.from_layout(channel, layout, args=args)
+        ls = LunaScript.from_layout(channel, layout, args=args, member=player.member)
         msg = await ls.send()
         
         emojis = {
@@ -503,7 +503,7 @@ class ServerEvent(commands.Cog):
                         'eventnick': player.nick,
                         'teamname': player.team.name,
                     }                    
-                    ls = LunaScript.from_layout(msg.channel, layout, args=args)
+                    ls = LunaScript.from_layout(msg.channel, layout, args=args, member=player.member)
                     await ls.send()
 
     @commands.command()
