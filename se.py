@@ -58,7 +58,7 @@ class RedeemView(ui.View):
             if inter.user != ctx.author:
                 return await inter.response.defer()
             
-            self.custom_id = inter.custom_id
+            self.custom_id = inter.data['custom_id']
             self.inter = inter 
             self.stop()
 
@@ -530,7 +530,7 @@ class ServerEvent(commands.Cog):
 
         embed = discord.Embed(color=0xcab7ff, title='Redeem a Powerup') 
         for i, choice in enumerate(choices):
-            embed.add_field(name=f'{i+1}', value=choice[0], inline=False)
+            embed.add_field(name=f'{i+1}', value=choice, inline=False)
          
         view = RedeemView(ctx, choices, self.powerups_1k)
         msg = await ctx.send(embed=embed, view=view)
