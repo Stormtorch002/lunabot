@@ -146,12 +146,12 @@ class Team:
 
 class Player:
 
-    def __init__(self, bot, member, nick, points, msg_count, powerups):
+    def __init__(self, bot, team, member, nick, points, msg_count, powerups):
         self.bot = bot 
         self.member = member 
         self.nick = nick 
         self.points = points 
-        self.team = None 
+        self.team = team 
         self.cds = [BASE_CD]
         self.multi = 1 
         self.powerups = powerups
@@ -315,7 +315,6 @@ class ServerEvent(commands.Cog):
             if member is None:
                 continue 
         
-            print('-1')
             team = row['team']
             if team not in self.teams:
                 query = 'select number from redeems where team = ?'
@@ -324,7 +323,6 @@ class ServerEvent(commands.Cog):
                 saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team)]
                 self.teams[team] = Team(team, [], self.bot.get_channel(channels[team]), redeems, saved_powerups)
             
-            print('0')
             query = 'select name, value, end_time from powerups where user_id = ? and end_time > ?'
             rows = await self.bot.db.fetch(query, member.id, time.time())
             powerups = []
@@ -334,17 +332,15 @@ class ServerEvent(commands.Cog):
                 elif row['name'] == 'Cooldown Reducer':
                     powerups.append(CooldownReducer(row['value'], row['end_time']))
 
-            print('1')
             query = 'select msgs, points from se_stats where user_id = ?'
             row = await self.bot.db.fetchrow(query, member.id)
 
-            player = Player(self.bot, member, nicks[member.id], row['points'], row['msgs'], powerups)
+            team = self.teams[team]
+            player = Player(self.bot, team, member, nicks[member.id], row['points'], row['msgs'], powerups)
             self.players[member.id] = player 
-            self.teams[team].players.append(player)
-            self.teams[team].msg_count += player.msg_count
-            print('2')
+            team.players.append(player)
+            team.msg_count += player.msg_count
 
-        print('a')
         team1 = self.teams['bunny']
         team2 = self.teams['kitty']
         team1.create_captain()
@@ -352,7 +348,6 @@ class ServerEvent(commands.Cog):
         team1.opp = team2
         team2.opp = team1
 
-        print('b')
         self.questions = questions 
         random.shuffle(self.questions)
         self.questions_i = 0
