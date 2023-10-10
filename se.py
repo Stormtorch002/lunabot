@@ -687,14 +687,16 @@ class ServerEvent(commands.Cog):
 
     @commands.command()
     async def teamstats(self, ctx, *, flags: TeamStatsFlags):
-        if flags.stat not in {'msgs', 'points', 'powerups', 'bonuses', 'trivia', 'stolen', 'welcs'}:
+        if flags.stat.lower() not in {'msgs', 'msg', 'message', 'messages', 'points', 'pts', 'powerups', 'bonuses', 'bonus', 'trivia', 'stolen', 'stole', 'welc', 'welcs'}:
             return await ctx.send('That is not a valid option!')
         if flags.team is None:
             team = self.players[ctx.author.id].team
-        elif flags.team not in self.teams and flags.team != 'both':
+        elif flags.team.lower() == 'both':
+            team == 'both'
+        elif flags.team not in self.teams:
             return await ctx.send('That is not a valid team!')
         else:
-            team = self.teams[team]
+            team = self.teams[flags.team]
         
         start = dateparser.parse(flags.start)
         end = dateparser.parse(flags.end)
@@ -745,7 +747,7 @@ class ServerEvent(commands.Cog):
         else:
             teams = [team] 
 
-        if flags.stat == 'msgs':
+        if flags.stat in {'msg', 'messages', 'message', 'msgs'}:
             rows_list = []
             for team in teams:
                 query = 'select time, gain from se_log where team = ? and type = ? and time < ? order by time asc'
@@ -771,7 +773,7 @@ class ServerEvent(commands.Cog):
                 
             await ctx.send(embed=embed, file=file)
 
-        elif flags.stat == 'points':
+        elif flags.stat in {'points', 'pts'}:
             rows_list = []
             for team in teams:
                 query = 'select gain, time from se_log where team = ? and type != ? and time < ?'
