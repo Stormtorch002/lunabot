@@ -751,7 +751,7 @@ class ServerEvent(commands.Cog):
         if flags.stat == 'msgs':
             rows_list = []
             for team in teams:
-                query = 'select gain, time from se_log where team = ? and type = ? and time < ? order by time asc'
+                query = 'select "time", gain from se_log where team = ? and type = ? and time < ? order by time asc'
                 rows = await self.bot.db.fetch(query, team.name, 'msg', int(end.timestamp()))
                 rows_list.append((team, rows))
             data = data_from_rows(rows_list)
