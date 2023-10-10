@@ -256,7 +256,7 @@ class Player:
         await self.bot.db.execute(query, points, self.member.id)
     
     async def on_500(self):
-        await self.add_points(25, '', multi=False)
+        await self.add_points(25, '500_bonus', multi=False)
         args = {
             'messages': self.msg_count,
         }
@@ -717,10 +717,14 @@ class ServerEvent(commands.Cog):
 
                 while i < len(rows):
                     row = rows[i]
-                    data.append((row['time'], data[-1][1] + row['gain']))
+                    try:
+                        data.append((row['time'], data[-1][1] + row['gain']))
+                    except:
+                        print(i, len(rows), row, data[-1])
                     i += 1
 
                 ret.append((team, data))
+
             return ret
         
         def data_from_powerups(rows_list):
@@ -747,7 +751,7 @@ class ServerEvent(commands.Cog):
         if flags.stat == 'msgs':
             rows_list = []
             for team in teams:
-                query = 'select gain, time from se_log where team = ? and type = ? and time < ?'
+                query = 'select gain, time from se_log where team = ? and type = ? and time < ? order by time asc'
                 rows = await self.bot.db.fetch(query, team.name, 'msg', int(end.timestamp()))
                 rows_list.append((team, rows))
             data = data_from_rows(rows_list)
