@@ -9,42 +9,54 @@ import matplotlib.pyplot as plt
 import numpy as np 
 import asyncio 
 from lunascript import Layout, LunaScript
+from se_charts import plot_data
 from trivia import questions
+from typing import Literal
+from itertools import cycle
+import dateparser
 
 
-OPTION3_TIME = 30 
-OPTION4_TIME = 30 
-OPTION5_TIME = 30 
-OPTION5_CD = 10 
-LOW_PERIOD = 100 
-HIGH_PERIOD = 1000 
-INDIV_REDUCED_CD = 1 
-TEAM_REDUCED_CD = 1 
-BASE_CD = 3 
-INDIV_DOUBLE_TIME = 30 
-TEAM_DOUBLE_TIME = 30 
-INDIV_TRIPLE_TIME = 15 
-TEAM_TRIPLE_TIME = 15 
-INDIV_REDUCED_CD_TIME = 30 
-TEAM_REDUCED_CD_TIME = 30
-WELC_CD = 30 
+# OPTION3_TIME = 30 
+# OPTION4_TIME = 30 
+# OPTION5_TIME = 30 
+# OPTION5_CD = 10 
+# LOW_PERIOD = 5 
+# HIGH_PERIOD = 10 
+# INDIV_REDUCED_CD = 1 
+# TEAM_REDUCED_CD = 1 
+# BASE_CD = 3 
+# INDIV_DOUBLE_TIME = 30 
+# TEAM_DOUBLE_TIME = 30 
+# INDIV_TRIPLE_TIME = 15 
+# TEAM_TRIPLE_TIME = 15 
+# INDIV_REDUCED_CD_TIME = 30 
+# TEAM_REDUCED_CD_TIME = 30
+# WELC_CD = 30 
 
-# OPTION3_TIME = 30 * 60
-# OPTION4_TIME = 20 * 60
-# OPTION5_TIME = 25 * 60
-# OPTION5_CD = 60 
-# LOW_PERIOD = 500 
-# HIGH_PERIOD = 1000
-# INDIV_REDUCED_CD = 60
-# TEAM_REDUCED_CD = 120
-# BASE_CD = 180
-# INDIV_DOUBLE_TIME = 15 * 60
-# TEAM_DOUBLE_TIME = 5 * 60
-# INDIV_TRIPLE_TIME = 15 * 60
-# TEAM_TRIPLE_TIME = 5 * 60
-# INDIV_REDUCED_CD_TIME = 30 * 60
-# TEAM_REDUCED_CD_TIME = 30 * 60
-# WELC_CD = 5 * 60
+OPTION3_TIME = 30 * 60
+OPTION4_TIME = 20 * 60
+OPTION5_TIME = 25 * 60
+OPTION5_CD = 60 
+LOW_PERIOD = 500 
+HIGH_PERIOD = 1000
+INDIV_REDUCED_CD = 60
+TEAM_REDUCED_CD = 120
+BASE_CD = 180
+INDIV_DOUBLE_TIME = 15 * 60
+TEAM_DOUBLE_TIME = 5 * 60
+INDIV_TRIPLE_TIME = 15 * 60
+TEAM_TRIPLE_TIME = 5 * 60
+INDIV_REDUCED_CD_TIME = 30 * 60
+TEAM_REDUCED_CD_TIME = 30 * 60
+WELC_CD = 5 * 60
+
+
+
+class TeamStatsFlags(commands.FlagConverter):
+    team: str = None 
+    stat: str
+    start: str = '1 day ago'
+    end: str = 'now'
 
 
 class RedeemView(ui.View):
@@ -71,20 +83,21 @@ class RedeemView(ui.View):
 
 
 class Powerup:
-    def __init__(self, end):
+    def __init__(self, start, end):
+        self.start = start
         self.end = end
 
 
 class Multiplier(Powerup):
-    def __init__(self, n, end):
-        super().__init__(end)
+    def __init__(self, n, start, end):
+        super().__init__(start, end)
         self.n = n 
         self.name = 'Multiplier'
     
 
 class CooldownReducer(Powerup):
-    def __init__(self, cd, end):
-        super().__init__(end)
+    def __init__(self, cd, start, end):
+        super().__init__(start, end)
         self.n = cd 
         self.name = 'Cooldown Reducer'
 
@@ -115,6 +128,10 @@ class Team:
             'messages': self.msg_count,
             'captainping': self.captain.member.mention,
         }
+
+        # comment out later 
+        args.pop('captainping')
+
         layout = Layout.from_name(self.captain.bot, '1k_private')
         ls = LunaScript.from_layout(self.channel, layout, args=args)
         await ls.send()
@@ -132,15 +149,15 @@ class Team:
     
     async def option3(self):
         for player in self.players:
-            await player.apply_powerup(Multiplier(2, time.time() + OPTION3_TIME))
+            await player.apply_powerup(Multiplier(2, time.time(), time.time() + OPTION3_TIME))
         
     async def option4(self):
         for player in self.players:
-            await player.apply_powerup(Multiplier(3, time.time() + OPTION4_TIME))
+            await player.apply_powerup(Multiplier(3, time.time(), time.time() + OPTION4_TIME))
     
     async def option5(self):
         for player in self.players:
-            await player.apply_powerup(CooldownReducer(OPTION5_CD, time.time() + OPTION5_TIME))
+            await player.apply_powerup(CooldownReducer(OPTION5_CD, time.time(), time.time() + OPTION5_TIME))
 
 
     @property 
@@ -180,8 +197,8 @@ class Player:
             self.cds.remove(powerup.n)
 
     async def apply_powerup(self, powerup):
-        query = 'insert into powerups (user_id, name, value, end_time) values (?, ?, ?, ?)'
-        await self.bot.db.execute(query, self.member.id, powerup.name, powerup.n, powerup.end)
+        query = 'insert into powerups (user_id, name, value, start_time, end_time) values (?, ?, ?, ?)'
+        await self.bot.db.execute(query, self.member.id, powerup.name, powerup.n, powerup.start, powerup.end)
         self.bot.loop.create_task(self.task(powerup))
 
     def apply_powerups(self):
@@ -258,10 +275,15 @@ class ServerEvent(commands.Cog):
         self.guild_id = 899108709450543115
         self.general_id = 899725913586032701
         self.channel_ids = {1158930467337293905, 1158931468664446986, self.general_id}
-        self.msgs_needed = 3 # random.randint(15, 35)
-        self.msg_counter = 3  
+        self.msgs_needed = random.randint(15, 35)
+
+        # comment out later
+        self.msgs_needed = 3
+        self.test = cycle([0, 1, 2, 3, 4])
+
+        self.msg_counter = 0  
+
         self.has_welcomed = set() 
-        self.test = iter([2, 3, 4])
         
         self.powerups_1k = [
             'Receive 15-20 points',
@@ -279,6 +301,9 @@ class ServerEvent(commands.Cog):
         ]
     
     def generate_powerup(self):
+        # comment out later 
+        return next(self.test)
+
         n = random.uniform(0, 1)
         if n < 0.5:
             return 0
@@ -294,8 +319,8 @@ class ServerEvent(commands.Cog):
     async def cog_load(self):
 
         playerdict = {
-            'bunny': [718475543061987329,496225545529327616, ],
-            'kitty': [687661271989878860]
+            'bunny': [718475543061987329,496225545529327616],
+            'kitty': [687661271989878860,862746477856292884]
         }
         channels = {
             'bunny': 1158930467337293905,
@@ -304,7 +329,8 @@ class ServerEvent(commands.Cog):
         nicks = {
             496225545529327616: 'Luna',
             687661271989878860: 'Nemi',
-            718475543061987329: 'Storch'
+            718475543061987329: 'Storch',
+            862746477856292884: 'Storch 2'
         }
 
         for team, members in playerdict.items():
@@ -330,14 +356,14 @@ class ServerEvent(commands.Cog):
                 saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team)]
                 self.teams[team] = Team(team, [], self.bot.get_channel(channels[team]), redeems, saved_powerups)
             
-            query = 'select name, value, end_time from powerups where user_id = ? and end_time > ?'
+            query = 'select name, value, start_time, end_time from powerups where user_id = ? and end_time > ?'
             rows = await self.bot.db.fetch(query, member.id, time.time())
             powerups = []
             for row in rows:
                 if row['name'] == 'Multiplier':
-                    powerups.append(Multiplier(row['value'], row['end_time']))
+                    powerups.append(Multiplier(row['value'], row['start_time'], row['end_time']))
                 elif row['name'] == 'Cooldown Reducer':
-                    powerups.append(CooldownReducer(row['value'], row['end_time']))
+                    powerups.append(CooldownReducer(row['value'], row['start_time'], row['end_time']))
 
             query = 'select msgs, points from se_stats where user_id = ?'
             row = await self.bot.db.fetchrow(query, member.id)
@@ -435,6 +461,9 @@ class ServerEvent(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
+        # comment out later
+        # return 
+
         if msg.guild is None or msg.guild.id != self.guild_id:
             return 
         if msg.author.bot:
@@ -460,11 +489,14 @@ class ServerEvent(commands.Cog):
         self.msg_counter += 1
         if self.msg_counter >= self.msgs_needed:
             self.msg_counter = 0 
-            # self.msgs_needed = random.randint(15, 35)
+            self.msgs_needed = random.randint(15, 35)
+            
+            #comment out later 
             self.msgs_needed = 3
+
             if random.choice([True, False]):
                 layout = Layout.from_name(self.bot, 'powerup_spawn')
-                powerup_i = next(self.test)# self.generate_powerup()
+                powerup_i = self.generate_powerup()
                 powerup_name = self.powerups_chat[powerup_i]
                 ls = LunaScript.from_layout(msg.channel, layout, args={'powerupname': powerup_name})
                 spawn = await ls.send()
@@ -521,12 +553,14 @@ class ServerEvent(commands.Cog):
 
     @commands.command()
     async def redeem(self, ctx):
+        # comment out later
+        team = self.players[ctx.author.id].team 
+        
         # for team in self.teams.values():
         #     if ctx.author == team.captain:
         #         break 
         # else:
         #     return 
-        team = self.players[ctx.author.id].team
         
         if team.redeems == 0:
             return await ctx.send('You have no more powerups to redeem!')
@@ -562,6 +596,8 @@ class ServerEvent(commands.Cog):
         #         break 
         # else:
         #     return 
+
+        #comment out later
         team = self.players[ctx.author.id].team
         
         powerups = team.saved_powerups
@@ -638,6 +674,94 @@ class ServerEvent(commands.Cog):
         embed.description = '\n'.join(pointlst)
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def teamstats(self, ctx, *, flags: TeamStatsFlags):
+        if flags.stat not in {'msgs', 'points', 'powerups', 'bonuses', 'trivia', 'stolen', 'welcs'}:
+            return await ctx.send('That is not a valid option!')
+        if flags.team is None:
+            team = self.players[ctx.author.id].team
+        elif team not in self.teams and team != 'both':
+            return await ctx.send('That is not a valid team!')
+        else:
+            team = self.teams[team]
+        
+        start = dateparser.parse(flags.start)
+        end = dateparser.parse(flags.end)
+
+        def data_from_rows(rows_list):
+            ret = []
+            for team, rows in rows_list:
+                data = []
+                # find the initial msg count 
+                count = 0 
+                for row in rows:
+                    if row['time'] > int(start.timestamp()):
+                        break 
+                    count += row['gain']
+                data.append((row['time'], count))
+                for row in rows[count:]:
+                    data.append((row['time'], data[-1][1] + row['gain']))
+                ret.append((team, data))
+            return ret
+        
+        def data_from_powerups(rows_list):
+            ret = []
+            for team, rows in rows_list:
+                data = []
+                # find the initial msg count 
+                count = 0 
+                for row in rows:
+                    if row['start_time'] > int(start.timestamp()):
+                        break 
+                    count += 1 
+                data.append((row['start_time'], count))
+                for row in rows[count:]:
+                    data.append((row['start_time'], data[-1][1] + 1))
+                ret.append((team, data))
+            return ret
+
+        if team == 'both':
+            teams = self.teams.values()
+        else:
+            teams = [team] 
+
+        if flags.stat == 'msgs':
+            rows_list = []
+            for team in teams:
+                query = 'select time from se_log where team = ? and type = ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, 'msg', int(end.timestamp()))
+                rows_list.append((team, rows))
+            data = data_from_rows(rows_list)
+            file = await plot_data(self.bot, data)
+
+            embed = discord.Embed(title='Messages sent', color=0xcab7ff)
+            for i, team in enumerate(teams):
+                mvp = max(team.players, key=lambda x: x.msg_count)
+                earliest = data[i][1][0][0]
+                latest = data[i][1][-1][0]
+
+                val = f'''
+                Total: {team.msg_count:,}
+                Average per player: {team.msg_count / len(team.players):.2f}
+                Team MVP: {mvp} ({mvp.msg_count:,})
+                Average per hour: {team.msg_count / ((latest - earliest) / 3600):.2f}
+                Average per day: {team.msg_count / ((latest - earliest) / 86400):.2f}
+                '''
+                embed.add_field(name=team.name.capitalize(), value=val)
+                
+            await ctx.send(embed=embed, file=file)
+
+        elif flags.stat == 'points':
+            rows_list = []
+            for team in teams:
+                query = 'select time from se_log where team = ? and type = ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, 'msg', int(end.timestamp()))
+                rows_list.append((team, rows))
+            data = data_from_rows(rows_list)
+            file = await plot_data(self.bot, data)
+            await ctx.send(file=file)
+
+        
 
 async def setup(bot):
     await bot.add_cog(ServerEvent(bot))
