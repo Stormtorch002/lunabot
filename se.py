@@ -393,9 +393,17 @@ class ServerEvent(commands.Cog):
         q_tuple = self.questions[self.questions_i]
         q = q_tuple[0]
         a = q_tuple[1]
-        choices = q_tuple[2]()
-        choices.append(a)
-        random.shuffle(choices)
+        if q == 'Who is Nemi??':
+            choices = [
+                "He is Luna's bf",
+                "He is the other owner of this server",
+                "He is an amazing person",
+                a
+            ]
+        else:
+            choices = q_tuple[2]()
+            choices.append(a)
+            random.shuffle(choices)
         
         if self.questions_i == len(self.questions) - 1:
             random.shuffle(self.questions)

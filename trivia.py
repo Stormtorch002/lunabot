@@ -2,7 +2,10 @@ import random
 
 
 def random_hex():
-    return '#' + ''.join([random.choice('0123456789abcdef') for _ in range(6)])
+    ret = []
+    for _ in range(3):
+        ret.append('#' + ''.join([random.choice('0123456789abcdef') for _ in range(6)]))
+    return ret
 
 def random_task():
     options = [
