@@ -692,7 +692,7 @@ class ServerEvent(commands.Cog):
         if flags.team is None:
             team = self.players[ctx.author.id].team
         elif flags.team.lower() == 'both':
-            team == 'both'
+            team = 'both'
         elif flags.team not in self.teams:
             return await ctx.send('That is not a valid team!')
         else:
