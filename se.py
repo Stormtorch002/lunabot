@@ -494,6 +494,9 @@ class ServerEvent(commands.Cog):
         if player.team.msg_count % HIGH_PERIOD == 0:
             await player.team.on_1000()
         
+        if msg.channel.id != self.general_id:
+            return 
+
         self.msg_counter += 1
         if self.msg_counter >= self.msgs_needed:
             self.msg_counter = 0 
