@@ -705,13 +705,21 @@ class ServerEvent(commands.Cog):
                 data = []
                 # find the initial msg count 
                 count = 0 
-                for row in rows:
+                i = 0
+                while i < len(rows):
+                    row = rows[i]
+                    i += 1
                     if row['time'] > int(start.timestamp()):
                         break 
                     count += row['gain']
+
                 data.append((row['time'], count))
-                for row in rows[count:]:
+
+                while i < len(rows):
+                    row = rows[i]
                     data.append((row['time'], data[-1][1] + row['gain']))
+                    i += 1
+
                 ret.append((team, data))
             return ret
         
