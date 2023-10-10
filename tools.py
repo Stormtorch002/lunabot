@@ -56,7 +56,7 @@ class Tools(commands.Cog, description='storchs tools'):
     
     @commands.command()
     async def reloadmodules(self, ctx):
-        modules = ['lunascript', 'utils']
+        modules = ['trivia', 'lunascript', 'utils']
         for module in modules:
             module = __import__(module)
             importlib.reload(module)
