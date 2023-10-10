@@ -717,10 +717,7 @@ class ServerEvent(commands.Cog):
 
                 while i < len(rows):
                     row = rows[i]
-                    try:
-                        data.append((row['time'], data[-1][1] + row['gain']))
-                    except:
-                        print(i, len(rows), row, data[-1])
+                    data.append((row['time'], data[-1][1] + row['gain']))
                     i += 1
 
                 ret.append((team, data))
@@ -751,7 +748,7 @@ class ServerEvent(commands.Cog):
         if flags.stat == 'msgs':
             rows_list = []
             for team in teams:
-                query = 'select "time", gain from se_log where team = ? and type = ? and time < ? order by time asc'
+                query = 'select time, gain from se_log where team = ? and type = ? and time < ? order by time asc'
                 rows = await self.bot.db.fetch(query, team.name, 'msg', int(end.timestamp()))
                 rows_list.append((team, rows))
             data = data_from_rows(rows_list)
@@ -766,7 +763,7 @@ class ServerEvent(commands.Cog):
                 val = f'''
                 Total: {team.msg_count:,}
                 Average per player: {team.msg_count / len(team.players):.2f}
-                Team MVP: {mvp} ({mvp.msg_count:,})
+                Team MVP: {mvp.nick} ({mvp.msg_count:,})
                 Average per hour: {team.msg_count / ((latest - earliest) / 3600):.2f}
                 Average per day: {team.msg_count / ((latest - earliest) / 86400):.2f}
                 '''
@@ -777,12 +774,27 @@ class ServerEvent(commands.Cog):
         elif flags.stat == 'points':
             rows_list = []
             for team in teams:
-                query = 'select time from se_log where team = ? and type = ? and time < ?'
+                query = 'select gain, time from se_log where team = ? and type != ? and time < ?'
                 rows = await self.bot.db.fetch(query, team.name, 'msg', int(end.timestamp()))
                 rows_list.append((team, rows))
             data = data_from_rows(rows_list)
             file = await plot_data(self.bot, data)
-            await ctx.send(file=file)
+            embed = discord.Embed(title='Points gained', color=0xcab7ff)
+            for i, team in enumerate(teams):
+                mvp = max(team.players, key=lambda x: x.points)
+                earliest = data[i][1][0][0]
+                latest = data[i][1][-1][0]
+
+                points = team.total_points
+                val = f'''
+                Total: {points:,}
+                Average per player: {points / len(team.players):.2f}
+                Team MVP: {mvp.nick} ({mvp.points:,})
+                Average per hour: {points / ((latest - earliest) / 3600):.2f}
+                Average per day: {points / ((latest - earliest) / 86400):.2f}
+                '''
+                embed.add_field(name=team.name.capitalize(), value=val)
+            await ctx.send(embed=embed, file=file)
 
         
 
