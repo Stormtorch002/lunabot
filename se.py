@@ -197,7 +197,7 @@ class Player:
             self.cds.remove(powerup.n)
 
     async def apply_powerup(self, powerup):
-        query = 'insert into powerups (user_id, name, value, start_time, end_time) values (?, ?, ?, ?)'
+        query = 'insert into powerups (user_id, name, value, start_time, end_time) values (?, ?, ?, ?, ?)'
         await self.bot.db.execute(query, self.member.id, powerup.name, powerup.n, powerup.start, powerup.end)
         self.bot.loop.create_task(self.task(powerup))
 
@@ -494,6 +494,9 @@ class ServerEvent(commands.Cog):
         if player.team.msg_count % HIGH_PERIOD == 0:
             await player.team.on_1000()
         
+        if msg.channel.id != self.general_id:
+            return 
+
         self.msg_counter += 1
         if self.msg_counter >= self.msgs_needed:
             self.msg_counter = 0 
