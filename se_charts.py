@@ -39,7 +39,7 @@ def plot_data_sync(data):
     if len(data) > 1:
         ax.plot([datetime.fromtimestamp(t[0]) for t in data[1][1]], [t[1] for t in data[1][1]], color='#9900bb')
     # Format the x axis.
-    ax.legend([t[0] for t in data])
+    ax.legend([t[0].name for t in data])
     # ax.xaxis.set_major_locator(mdates.DayLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d\n%H:%M', tz=timezone('US/Central')))
 
