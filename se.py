@@ -527,27 +527,27 @@ class ServerEvent(commands.Cog):
                 elif powerup_i == 1:
                     await self.trivia(player, msg.channel, steal=True)
                 elif powerup_i == 2:
-                    await player.apply_powerup(CooldownReducer(INDIV_REDUCED_CD, time.time() + INDIV_REDUCED_CD_TIME))
+                    await player.apply_powerup(CooldownReducer(INDIV_REDUCED_CD, time.time(), time.time() + INDIV_REDUCED_CD_TIME))
 
                     for other in player.team.players:
                         if other != player:
-                            await other.apply_powerup(CooldownReducer(TEAM_REDUCED_CD, time.time() + TEAM_REDUCED_CD_TIME))
+                            await other.apply_powerup(CooldownReducer(TEAM_REDUCED_CD, time.time(), time.time() + TEAM_REDUCED_CD_TIME))
 
                     layout = Layout.from_name(self.bot, 'reduced_cd')
                 elif powerup_i == 3:
-                    await player.apply_powerup(Multiplier(2, time.time() + INDIV_DOUBLE_TIME))
+                    await player.apply_powerup(Multiplier(2, time.time(), time.time() + INDIV_DOUBLE_TIME))
 
                     for other in player.team.players:
                         if other != player:
-                            await other.apply_powerup(Multiplier(2, time.time() + TEAM_DOUBLE_TIME))
+                            await other.apply_powerup(Multiplier(2, time.time(), time.time() + TEAM_DOUBLE_TIME))
 
                     layout = Layout.from_name(self.bot, 'double')
                 else:
-                    await player.apply_powerup(Multiplier(3, time.time() + INDIV_TRIPLE_TIME))
+                    await player.apply_powerup(Multiplier(3, time.time(), time.time() + INDIV_TRIPLE_TIME))
 
                     for other in player.team.players:
                         if other != player:
-                            await other.apply_powerup(Multiplier(3, time.time() + TEAM_TRIPLE_TIME))
+                            await other.apply_powerup(Multiplier(3, time.time(), time.time() + TEAM_TRIPLE_TIME))
 
                     layout = Layout.from_name(self.bot, 'triple')
 
