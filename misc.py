@@ -36,7 +36,7 @@ class Misc(commands.Cog):
         if ctx.interaction is None:
             await ctx.message.delete()
         else:
-            await ctx.interaction.response.defer()
+            await ctx.interaction.response.defer(thinking=False)
         if str(ctx.channel.id) not in self.webhooks:
             webhook = await ctx.channel.create_webhook(name='polyjuice')
             self.webhooks[str(ctx.channel.id)] = webhook.url
