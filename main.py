@@ -3,6 +3,7 @@ import asyncio
 from discord.ext import commands 
 from typing import Literal, Optional
 from config import TOKEN
+import aiohttp
 
 discord.utils.setup_logging()
 
@@ -18,6 +19,7 @@ async def start():
     print('Loading...')
     await bot.wait_until_ready()
     print('Ready')
+    bot.session = aiohttp.ClientSession()
     await bot.load_extension("jishaku")
     await bot.load_extension('db')
     await bot.load_extension("ticket")
@@ -34,7 +36,6 @@ async def start():
     await bot.load_extension('misc')
     await bot.load_extension('bumpremind')
     await bot.load_extension('pingonjoin')
-
 
 @bot.command()
 @commands.guild_only()

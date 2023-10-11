@@ -39,7 +39,7 @@ class Misc(commands.Cog):
             with open('webhooks.json', 'w') as f:
                 json.dump(self.webhooks, f)
         else:
-            webhook = discord.Webhook.from_url(self.webhooks[ctx.channel.id])
+            webhook = discord.Webhook.from_url(self.webhooks[ctx.channel.id], self.bot.session)
         if ctx.interaction is None:
             await ctx.message.delete()
         else:
