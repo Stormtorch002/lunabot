@@ -277,7 +277,6 @@ class LunaScriptParser:
     def parse_sync(self, text):
         
         def ordered_eval(string):
-            print(string)
             string = [char for char in string]
             newstr = []
             i = 0
@@ -444,13 +443,11 @@ class LunaScriptParser:
                     while j < len(string) and string[j] != '}':
                         j += 1
                     varname = ''.join(string[i+1:j])
-                    print(varname)
                     if varname in self.vars_builtin:
                         repl = self.vars_builtin[varname]()
                     elif varname in self.vars:
                         repl = self.vars[varname]
                     elif varname in self.args:
-                        print('hi')
                         repl = self.args[varname]
                     else:
                         repl = ''
