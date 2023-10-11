@@ -137,6 +137,7 @@ class Automessages(commands.Cog):
         await ctx.send('Deleted your automessage!', ephemeral=True)
     
     @commands.hybrid_command()
+    @app_commands.default_permissions()
     async def listams(self, ctx):
         query = 'SELECT name, channel_id FROM ams'
         rows = await self.bot.db.fetch(query)
