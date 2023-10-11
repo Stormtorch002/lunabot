@@ -37,17 +37,15 @@ class Misc(commands.Cog):
             await ctx.message.delete()
         else:
             await ctx.interaction.response.defer()
-        if ctx.channel.id not in self.webhooks:
+        if str(ctx.channel.id) not in self.webhooks:
             webhook = await ctx.channel.create_webhook(name='polyjuice')
-            self.webhooks[ctx.channel.id] = webhook.url
+            self.webhooks[str(ctx.channel.id)] = webhook.url
             with open('webhooks.json', 'w') as f:
                 json.dump(self.webhooks, f)
         else:
-            webhook = discord.Webhook.from_url(self.webhooks[ctx.channel.id], session=self.bot.session)
+            webhook = discord.Webhook.from_url(self.webhooks[str(ctx.channel.id)], session=self.bot.session)
         
         await webhook.send(sentence, username=member.display_name, avatar_url=member.display_avatar.url)
-        if ctx.interaction:
-            await ctx.interaction.followup.send('successfully sent', ephemeral=True)
         
 
 
