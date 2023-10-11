@@ -23,6 +23,7 @@ class Embeds(commands.Cog, description='Create, save, and edit your own embeds.'
 
     
     @commands.hybrid_group()
+    @app_commands.default_permissions()
     async def embed(self, ctx):
         """No purpose, just shows help"""
         await ctx.send_help(ctx.command)
