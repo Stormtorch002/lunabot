@@ -33,6 +33,10 @@ class Misc(commands.Cog):
     
     @commands.hybrid_command()
     async def polyjuice(self, ctx, member: discord.Member, *, sentence: str):
+        if ctx.interaction is None:
+            await ctx.message.delete()
+        else:
+            await ctx.interaction.response.defer()
         if ctx.channel.id not in self.webhooks:
             webhook = await ctx.channel.create_webhook(name='polyjuice')
             self.webhooks[ctx.channel.id] = webhook.url
@@ -40,11 +44,10 @@ class Misc(commands.Cog):
                 json.dump(self.webhooks, f)
         else:
             webhook = discord.Webhook.from_url(self.webhooks[ctx.channel.id], session=self.bot.session)
-        if ctx.interaction is None:
-            await ctx.message.delete()
-        else:
-            await ctx.interaction.response.defer()
+        
         await webhook.send(sentence, username=member.display_name, avatar_url=member.display_avatar.url)
+        if ctx.interaction:
+            await ctx.interaction.followup.send('successfully sent', ephemeral=True)
         
 
 
