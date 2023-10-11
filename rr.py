@@ -304,6 +304,7 @@ class RR(commands.Cog, name='Reaction Roles'):
         return ctx.author.guild_permissions.administrator or ctx.author.id == self.bot.STORCH_ID
     
     @commands.hybrid_command()
+    @app_commands.default_permissions()
     async def addrr(self, ctx, *, channel: discord.TextChannel):
         embed = discord.Embed(
             title='Make the message for reactions to go under',
@@ -385,6 +386,7 @@ class RR(commands.Cog, name='Reaction Roles'):
         await ctx.send('Successfully added reaction role :white_check_mark:')
 
     @commands.hybrid_command()
+    @app_commands.default_permissions()
     async def removerr(self, ctx, channel: discord.TextChannel, message_id: int):
         try:
             message = await channel.fetch_message(message_id)
