@@ -14,8 +14,11 @@ from trivia import questions
 from typing import Literal
 from itertools import cycle
 import dateparser
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
+START_TIME = datetime(2023, 10, 10, 11).astimezone(ZoneInfo('US/Central'))
 OPTION3_TIME = 30 
 OPTION4_TIME = 30 
 OPTION5_TIME = 30 
@@ -33,6 +36,7 @@ INDIV_REDUCED_CD_TIME = 30
 TEAM_REDUCED_CD_TIME = 30
 WELC_CD = 30 
 
+# START_TIME = datetime(2023, 10, 16, 0).astimezone(ZoneInfo('US/Central'))
 # OPTION3_TIME = 30 * 60
 # OPTION4_TIME = 20 * 60
 # OPTION5_TIME = 25 * 60
@@ -55,7 +59,7 @@ WELC_CD = 30
 class TeamStatsFlags(commands.FlagConverter):
     team: str = None 
     stat: str
-    start: str = '1 day ago'
+    start: str = None
     end: str = 'now'
 
 
@@ -698,7 +702,11 @@ class ServerEvent(commands.Cog):
         else:
             team = self.teams[flags.team]
         
-        start = dateparser.parse(flags.start)
+        if flags.start is None:
+            start = START_TIME
+        else:
+            start = dateparser.parse(flags.start)
+
         end = dateparser.parse(flags.end)
 
         def data_from_rows(rows_list):
@@ -759,15 +767,15 @@ class ServerEvent(commands.Cog):
             embed = discord.Embed(title='Messages sent', color=0xcab7ff)
             for i, team in enumerate(teams):
                 mvp = max(team.players, key=lambda x: x.msg_count)
-                earliest = data[i][1][0][0]
-                latest = data[i][1][-1][0]
+                earliest = start.timestamp()
+                latest = end.timestamp()
 
                 val = f'''
-                Total: {team.msg_count:,}
-                Average per player: {team.msg_count / len(team.players):.2f}
-                Team MVP: {mvp.nick} ({mvp.msg_count:,})
-                Average per hour: {team.msg_count / ((latest - earliest) / 3600):.2f}
-                Average per day: {team.msg_count / ((latest - earliest) / 86400):.2f}
+                Total: **{team.msg_count:,}**
+                Average per player: **{team.msg_count / len(team.players):.2f}
+                Team MVP: **{mvp.nick}** ({mvp.msg_count:,})
+                Average per hour: **{team.msg_count / ((latest - earliest) / 3600):.2f}**
+                Average per day: **{team.msg_count / ((latest - earliest) / 86400):.2f}**
                 '''
                 embed.add_field(name=team.name.capitalize(), value=val)
                 
@@ -784,16 +792,16 @@ class ServerEvent(commands.Cog):
             embed = discord.Embed(title='Points gained', color=0xcab7ff)
             for i, team in enumerate(teams):
                 mvp = max(team.players, key=lambda x: x.points)
-                earliest = data[i][1][0][0]
-                latest = data[i][1][-1][0]
+                earliest = start.timestamp()
+                latest = end.timestamp()
 
                 points = team.total_points
                 val = f'''
-                Total: {points:,}
-                Average per player: {points / len(team.players):.2f}
-                Team MVP: {mvp.nick} ({mvp.points:,})
-                Average per hour: {points / ((latest - earliest) / 3600):.2f}
-                Average per day: {points / ((latest - earliest) / 86400):.2f}
+                Total: **{points:,}**
+                Average per player: **{points / len(team.players):.2f}**
+                Team MVP: **{mvp.nick}** ({mvp.points:,})
+                Average per hour: **{points / ((latest - earliest) / 3600):.2f}**
+                Average per day: **{points / ((latest - earliest) / 86400):.2f}**
                 '''
                 embed.add_field(name=team.name.capitalize(), value=val)
             await ctx.send(embed=embed, file=file)
