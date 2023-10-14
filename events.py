@@ -4,6 +4,7 @@ from discord.ext import commands
 import json 
 import discord
 from embed_editor.editor import EmbedEditor
+from lunascript import Layout, LunaScript
 from discord import ui 
 from textwrap import dedent
 from num2words import num2words
@@ -11,8 +12,8 @@ import asyncio
 import time 
 from discord import app_commands 
 
-# BOOSTER_ROLE_ID = 913086743035658292
-BOOSTER_ROLE_ID = 953441647507673088
+BOOSTER_ROLE_ID = 913086743035658292
+# BOOSTER_ROLE_ID = 953441647507673088
 FREE_OFFERS_CHANNEL_ID = 1127014412432183347
 
 
@@ -134,38 +135,32 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
         }
         await self.send_embed(member, repl, 'goodbye')
     
-    @commands.command()
-    async def boosttest(self, ctx):
-        booster_role = ctx.guild.get_role(BOOSTER_ROLE_ID)
-        if booster_role not in ctx.author.roles:
-            await ctx.author.add_roles(booster_role)
-        else:
-            await ctx.author.remove_roles(booster_role)
-        await ctx.send(':white_check_mark:')
+    # @commands.command()
+    # async def boosttest(self, ctx):
+    #     booster_role = ctx.guild.get_role(BOOSTER_ROLE_ID)
+    #     if booster_role not in ctx.author.roles:
+    #         await ctx.author.add_roles(booster_role)
+    #     else:
+    #         await ctx.author.remove_roles(booster_role)
+    #     await ctx.send(':white_check_mark:')
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
         booster_role = before.guild.get_role(BOOSTER_ROLE_ID)
-        logging.info('member update')
 
         if booster_role not in before.roles and booster_role in after.roles:
-            logging.info(f'{after} boosted {after.guild}')
             member = after
 
             if str(member.guild.id) not in self.events:
                 return 
             if 'boost' not in self.events[str(member.guild.id)]:
                 return 
-        
-            count = member.guild.premium_subscription_count
-            repl = {
-                '{name}': member.display_name,
-                '{mention}': member.mention,
-                '{username}': member.name,
-                '{number}': count,
-                '{ordinal}': num2words(count, to='ordinal_num')
-            }
-            await self.send_embed(member, repl, 'boost')
+
+            layout = Layout.from_name(self.bot, 'boost')
+            channel_id = self.events[str(member.guild.id)]['boost']['channel_id']
+            channel = self.bot.get_channel(channel_id)
+            ls = LunaScript.from_layout(channel, layout, member=member, guild=member.guild)
+            await ls.send()
 
     @commands.hybrid_command(name='set-event-text')
     @app_commands.default_permissions()

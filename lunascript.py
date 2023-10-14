@@ -199,6 +199,9 @@ class LunaScript(TextEmbed):
                 channel = msgble
 
             args = kwargs.pop('args', None)
+            if 'guild' not in kwargs and 'member' in kwargs:
+                kwargs['guild'] = kwargs['member'].guild
+
             self.script_ctx = ScriptContext(kwargs.pop('bot'), args=args, channel=channel, **kwargs)
             self.msgble = msgble
         self.parser = LunaScriptParser(self.script_ctx)
