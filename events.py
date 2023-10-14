@@ -23,7 +23,6 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
         with open('events.json') as f:
             self.events = json.load(f)
         self.rm_role_tasks = {}
-        self.booster_role = discord.Object(BOOSTER_ROLE_ID)
 
     async def rm_role(self, row):
         await asyncio.sleep(row[3] - time.time())
@@ -138,13 +137,18 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
     @commands.command()
     async def boosttest(self, ctx):
         booster_role = discord.Object(BOOSTER_ROLE_ID)
-        await ctx.author.add_roles(booster_role)
+        if booster_role not in ctx.author.roles:
+            await ctx.author.add_roles(booster_role)
+        else:
+            await ctx.author.remove_roles(booster_role)
         await ctx.send(':white_check_mark:')
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
-        
-        if self.booster_role not in before.roles and self.booster_role in after.roles:
+        booster_role = before.guild.get_role(BOOSTER_ROLE_ID)
+        logging.info('member update')
+
+        if booster_role not in before.roles and booster_role in after.roles:
             logging.info(f'{after} boosted {after.guild}')
             member = after
 
