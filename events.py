@@ -136,7 +136,7 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
     
     @commands.command()
     async def boosttest(self, ctx):
-        booster_role = discord.Object(BOOSTER_ROLE_ID)
+        booster_role = ctx.guild.get_role(BOOSTER_ROLE_ID)
         if booster_role not in ctx.author.roles:
             await ctx.author.add_roles(booster_role)
         else:
