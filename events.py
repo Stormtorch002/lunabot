@@ -161,7 +161,7 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
             repl = {
                 '{name}': member.display_name,
                 '{mention}': member.mention,
-                '{username}': member.nam,
+                '{username}': member.name,
                 '{number}': count,
                 '{ordinal}': num2words(count, to='ordinal_num')
             }
