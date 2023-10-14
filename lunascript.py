@@ -461,3 +461,18 @@ class LunaScriptParser:
             return ''.join(newstr)
         
         return ordered_eval(text)
+
+if __name__ == '__main__':
+    teststr = '''<s>
+    n+=1
+    updates = 'n'
+    </s>
+    hi {mention}! you are the th({n}) person to use this.
+    [{n}<10: we need $10-{n}$ more to reach 10]
+    [{n}>=10: we reached 10!]'''
+    teststr = 'th(6)'
+
+    parser = LunaScriptParser()
+    for i in range(100):
+        print(parser.parse(teststr))
+    print(parser.vars)
