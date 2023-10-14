@@ -1,4 +1,5 @@
 from typing import Literal
+import logging
 from discord.ext import commands 
 import json 
 import discord
@@ -70,8 +71,9 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
                     task = self.bot.loop.create_task(self.rm_role(row))
                     self.rm_role_tasks[row[4]] = task
 
-        embeddict = self.events[str(member.guild.id)][event].get('embed')
-        text = self.events[str(member.guild.id)][event].get('text')
+        data = self.events[str(member.guild.id)][event]
+        embeddict = data.get('embed')
+        text = data.get('text')
         if text:
             for x, y in repl.items():
                 text = text.replace(x, str(y))
@@ -82,7 +84,7 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
             embed = discord.Embed.from_dict(json.loads(js))
         else:
             embed = None
-        channel = self.bot.get_channel(self.events[str(member.guild.id)][event]['channel_id'])
+        channel = self.bot.get_channel(data['channel_id'])
         await channel.send(text, embed=embed)
 
     @commands.Cog.listener()
@@ -132,10 +134,17 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
         }
         await self.send_embed(member, repl, 'goodbye')
     
+    @commands.command()
+    async def boosttest(self, ctx):
+        booster_role = discord.Object(BOOSTER_ROLE_ID)
+        await ctx.author.add_roles(booster_role)
+        await ctx.send(':white_check_mark:')
+
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
         
         if self.booster_role not in before.roles and self.booster_role in after.roles:
+            logging.info(f'{after} boosted {after.guild}')
             member = after
 
             if str(member.guild.id) not in self.events:
@@ -147,7 +156,7 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
             repl = {
                 '{name}': member.display_name,
                 '{mention}': member.mention,
-                '{username}': member.name,
+                '{username}': member.nam,
                 '{number}': count,
                 '{ordinal}': num2words(count, to='ordinal_num')
             }
