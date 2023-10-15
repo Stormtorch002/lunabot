@@ -691,7 +691,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
     
     
     @commands.command()
-    async def listar(self, ctx):
+    async def listar(self, ctx, page: int = 1):
         ars = [(ar.phrase, ar.detection) for ar in self.ars if ctx.guild in ar.guilds]
         # split into chunks of 10
         ar_chunks = [ars[i:i+10] for i in range(0, len(ars), 10)]
@@ -701,8 +701,10 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             embed.description = '\n'.join([f'{phrase} ({detection})' for phrase, detection in ars])
             embeds.append(embed)
             
-        view = RoboPages(AutoSource(embeds, per_page=1), ctx=ctx)
-        await view.start()
+        try:
+            await ctx.send(embed=embeds[page-1])
+        except IndexError:
+            await ctx.send('No page with that number.')
 
 
 
