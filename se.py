@@ -828,20 +828,20 @@ class ServerEvent(commands.Cog):
         
         elif flags.stat in {'powerup', 'powerups'}:
             rows_list = []
-            types = [
+            types = ','.join([
                 'topup_powerup',
                 'steal_powerup',
                 'trivia_powerup',
                 'multi_powerup',
                 'cd_powerup'
-            ]
+            ])
             stats = {}
 
             for team in teams:
                 if team.name not in stats:
                     stats[team.name] = {}
 
-                query = 'select user_id, count(user_id) as freq from se_log where team = ? and type in ? and time < ? group by user_id order by freq desc limit 1'
+                query = 'select user_id, count(user_id) as freq from se_log where team = ? and type IN ? and time < ? group by user_id order by freq desc limit 1'
                 row = await self.bot.db.fetchrow(query, team.name, types, int(end.timestamp()))
                 stats['mvp'] = (self.players[row['user_id']], row['freq'])
 
@@ -871,12 +871,12 @@ class ServerEvent(commands.Cog):
         
         elif flags.stat in {'bonus', 'bonuses'}:
             rows_list = []
-            types = [
+            types = ','.join([
                 'welc_bonus',
                 '500_bonus',
                 'topup_bonus',
                 'steal_bonus'
-            ]
+            ])
             stats = {}
             player_stats = {}
     
@@ -919,9 +919,6 @@ class ServerEvent(commands.Cog):
         
         elif flags.stat == 'trivia':
             rows_list = []
-            types = [
-                'trivia'
-            ]
             stats = {}
             player_stats = {}
     
@@ -930,8 +927,8 @@ class ServerEvent(commands.Cog):
                 if team.name not in stats:
                     stats[team.name] = {}
 
-                query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
-                rows = await self.bot.db.fetch(query, team.name, types, int(end.timestamp()))
+                query = 'select user_id, gain, time from se_log where team = ? and type = ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, 'trivia', int(end.timestamp()))
 
                 for row in rows:
                     if row['user_id'] not in player_stats:
@@ -964,9 +961,6 @@ class ServerEvent(commands.Cog):
             
         elif flags.stat in {'stolen', 'stole', 'steals'}:
             rows_list = []
-            types = [
-                'stolen'
-            ]
             stats = {}
             player_stats = {}
     
@@ -975,8 +969,8 @@ class ServerEvent(commands.Cog):
                 if team.name not in stats:
                     stats[team.name] = {}
 
-                query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
-                rows = await self.bot.db.fetch(query, team.name, types, int(end.timestamp()))
+                query = 'select user_id, gain, time from se_log where team = ? and type = ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, 'stolen', int(end.timestamp()))
 
                 for row in rows:
                     if row['user_id'] not in player_stats:
@@ -1009,9 +1003,6 @@ class ServerEvent(commands.Cog):
         
         else:
             rows_list = []
-            types = [
-                'welc_bonus'
-            ]
             stats = {}
             player_stats = {}
     
@@ -1020,8 +1011,8 @@ class ServerEvent(commands.Cog):
                 if team.name not in stats:
                     stats[team.name] = {}
 
-                query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
-                rows = await self.bot.db.fetch(query, team.name, types, int(end.timestamp()))
+                query = 'select user_id, gain, time from se_log where team = ? and type = ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, 'welc_bonus', int(end.timestamp()))
 
                 for row in rows:
                     if row['user_id'] not in player_stats:
