@@ -1,4 +1,5 @@
 from discord.ext import commands 
+from utils.views import RoboPages, AutoSource
 from discord import ui
 from discord.interactions import Interaction
 from embed_editor.editor import EmbedEditor
@@ -46,7 +47,7 @@ class AutoResponder:
         self.wlchannels = json.loads(wlchannels) if wlchannels else []
         self.blchannels = json.loads(blchannels) if blchannels else []
         self.text = text
-        self.embed = json.loads(embed) if embed else None
+        self.embed = embed 
         self.autoemojis = json.loads(autoemojis) if autoemojis else []
         self.give_roles = json.loads(give_roles) if give_roles else []
         self.remove_roles = json.loads(remove_roles) if remove_roles else []
@@ -122,7 +123,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                     await msg.add_reaction(emoji)
             else:
                 if ar.embed:
-                    embed = discord.Embed.from_dict(ar.embed)
+                    embed = self.bot.embeds.get(ar.embed)
                 else:
                     embed = None
 
@@ -265,28 +266,28 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 return 
             
             if not skippable:
-                query = 'SELECT embed FROM embeds WHERE name = ?'
+                query = 'SELECT name FROM embeds WHERE name = ?'
                 val = await self.bot.db.fetchval(query, msg2.content.lower())
                 if val is None:
                     return await ctx.send('No embed with that name found.')
-                embed = val 
+                embed_name = val 
             else:
                 if msg2.content.lower() == 'skip':
-                    embed = None 
+                    embed_name = None 
                 else:
-                    query = 'SELECT embed FROM embeds WHERE name = ?'
+                    query = 'SELECT name FROM embeds WHERE name = ?'
                     val = await self.bot.db.fetchval(query, msg2.content.lower())
                     if val is None:
                         return await ctx.send('No embed with that name found.')
-                    embed = val 
+                    embed_name = val 
 
             self.ars.append(
-                AutoResponder(phrase.lower(), choice, json.dumps(guild_ids), '[]', '[]', '[]', '[]', '[]', '[]', text, embed, [])
+                AutoResponder(phrase.lower(), choice, json.dumps(guild_ids), '[]', '[]', '[]', '[]', '[]', '[]', text, embed_name, [])
             )
             async with self.bot.pool.acquire() as conn:
                 query = '''INSERT INTO ars (phrase, detection, guilds, message, embed)
                             VALUES (?, ?, ?, ?, ?)'''
-                await conn.execute(query, (phrase.lower(), choice, json.dumps(guild_ids), text, embed))
+                await conn.execute(query, (phrase.lower(), choice, json.dumps(guild_ids), text, embed_name))
                 await conn.commit()
         else:
             emojis = await self.getemojis(ctx, view2.inter)
@@ -689,6 +690,21 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
     #     await ctx.send('No autoresponder with that name.')
     
     
+    @commands.command()
+    async def listar(self, ctx):
+        ars = [(ar.phrase, ar.detection) for ar in self.ars if ar.g]
+        # split into chunks of 10
+        ar_chunks = [ars[i:i+10] for i in range(0, len(ars), 10)]
+        embeds = []
+        for i, ars in enumerate(ar_chunks):
+            embed = discord.Embed(title=f'Autoresponders (page {i+1}/{len(ar_chunks)})', color=0xcab7ff)
+            embed.description = '\n'.join([f'{phrase} ({detection})' for phrase, detection in ars])
+            embeds.append(embed)
+            
+        view = RoboPages(AutoSource(embeds), ctx=ctx)
+        await view.start()
+
+
 
 
 async def setup(bot):

@@ -143,21 +143,33 @@ class Team:
     async def option1(self):
         points = random.randint(15, 20)
         await self.captain.add_points(points, 'topup_powerup')
+        await self.captain.log_powerup('topup_powerup')
         return points
     
     async def option2(self):
         points = random.randint(10, 15)
         await self.opp.captain.remove_points(points, 'stolen')
         await self.captain.add_points(points, 'steal_powerup')
+        await self.captain.log_powerup('steal_powerup')
         return points
     
     async def option3(self):
         for player in self.players:
-            await player.apply_powerup(Multiplier(2, time.time(), time.time() + OPTION3_TIME))
+            if player == self.captain:
+                log = True 
+            else: 
+                log = False
+
+            await player.apply_powerup(Multiplier(2, time.time(), time.time() + OPTION3_TIME), log=log)
         
     async def option4(self):
         for player in self.players:
-            await player.apply_powerup(Multiplier(3, time.time(), time.time() + OPTION4_TIME))
+            if player == self.captain:
+                log = True 
+            else: 
+                log = False
+
+            await player.apply_powerup(Multiplier(3, time.time(), time.time() + OPTION4_TIME), log=log)
     
     async def option5(self):
         for player in self.players:
@@ -200,10 +212,16 @@ class Player:
             await asyncio.sleep(powerup.end - time.time())
             self.cds.remove(powerup.n)
 
-    async def apply_powerup(self, powerup):
+    async def log_powerup(self, name):
+        query = 'insert into se_log (team, user_id, type, gain, time) values (?, ?, ?, ?, ?)'
+        await self.bot.db.execute(query, self.team.name, self.member.id, name, 1, int(time.time()))
+
+    async def apply_powerup(self, powerup, *, log=False):
         query = 'insert into powerups (user_id, name, value, start_time, end_time) values (?, ?, ?, ?, ?)'
         await self.bot.db.execute(query, self.member.id, powerup.name, powerup.n, powerup.start, powerup.end)
         self.bot.loop.create_task(self.task(powerup))
+        if log:
+            await self.log_powerup(powerup.name)
 
     def apply_powerups(self):
         for powerup in self.powerups:
@@ -534,7 +552,7 @@ class ServerEvent(commands.Cog):
                 elif powerup_i == 1:
                     await self.trivia(player, msg.channel, steal=True)
                 elif powerup_i == 2:
-                    await player.apply_powerup(CooldownReducer(INDIV_REDUCED_CD, time.time(), time.time() + INDIV_REDUCED_CD_TIME))
+                    await player.apply_powerup(CooldownReducer(INDIV_REDUCED_CD, time.time(), time.time() + INDIV_REDUCED_CD_TIME), log=True)
 
                     for other in player.team.players:
                         if other != player:
@@ -542,7 +560,7 @@ class ServerEvent(commands.Cog):
 
                     layout = Layout.from_name(self.bot, 'reduced_cd')
                 elif powerup_i == 3:
-                    await player.apply_powerup(Multiplier(2, time.time(), time.time() + INDIV_DOUBLE_TIME))
+                    await player.apply_powerup(Multiplier(2, time.time(), time.time() + INDIV_DOUBLE_TIME), log=True)
 
                     for other in player.team.players:
                         if other != player:
@@ -550,7 +568,7 @@ class ServerEvent(commands.Cog):
 
                     layout = Layout.from_name(self.bot, 'double')
                 else:
-                    await player.apply_powerup(Multiplier(3, time.time(), time.time() + INDIV_TRIPLE_TIME))
+                    await player.apply_powerup(Multiplier(3, time.time(), time.time() + INDIV_TRIPLE_TIME), log=True)
 
                     for other in player.team.players:
                         if other != player:
@@ -691,7 +709,7 @@ class ServerEvent(commands.Cog):
 
     @commands.command()
     async def teamstats(self, ctx, *, flags: TeamStatsFlags):
-        if flags.stat.lower() not in {'msgs', 'msg', 'message', 'messages', 'points', 'pts', 'powerups', 'bonuses', 'bonus', 'trivia', 'stolen', 'stole', 'welc', 'welcs'}:
+        if flags.stat.lower() not in {'msgs', 'msg', 'message', 'messages', 'points', 'pts', 'powerup', 'powerups', 'bonuses', 'bonus', 'trivia', 'stolen', 'stole', 'welc', 'welcs'}:
             return await ctx.send('That is not a valid option!')
         if flags.team is None:
             team = self.players[ctx.author.id].team
@@ -772,7 +790,7 @@ class ServerEvent(commands.Cog):
 
                 val = f'''
                 Total: **{team.msg_count:,}**
-                Average per player: **{team.msg_count / len(team.players):.2f}
+                Average per player: **{team.msg_count / len(team.players):.2f}**
                 Team MVP: **{mvp.nick}** ({mvp.msg_count:,})
                 Average per hour: **{team.msg_count / ((latest - earliest) / 3600):.2f}**
                 Average per day: **{team.msg_count / ((latest - earliest) / 86400):.2f}**
@@ -805,6 +823,32 @@ class ServerEvent(commands.Cog):
                 '''
                 embed.add_field(name=team.name.capitalize(), value=val)
             await ctx.send(embed=embed, file=file)
+        
+        elif flags.stat in {'powerup', 'powerups'}:
+            rows_list = []
+            for team in teams:
+                query = 'select start_time from powerups where team = ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, int(end.timestamp()))
+                rows_list.append((team, rows))
+            data = data_from_powerups(rows_list)
+            file = await plot_data(self.bot, data)
+            embed = discord.Embed(title='Powerups gained', color=0xcab7ff)
+            for i, team in enumerate(teams):
+                mvp = max(team.players, key=lambda x: x.points)
+                earliest = start.timestamp()
+                latest = end.timestamp()
+
+                points = team.total_points
+                val = f'''
+                Total: **{points:,}**
+                Average per player: **{points / len(team.players):.2f}**
+                Team MVP: **{mvp.nick}** ({mvp.points:,})
+                Average per hour: **{points / ((latest - earliest) / 3600):.2f}**
+                Average per day: **{points / ((latest - earliest) / 86400):.2f}**
+                '''
+                embed.add_field(name=team.name.capitalize(), value=val)
+            await ctx.send(embed=embed, file=file)
+
 
         
 
