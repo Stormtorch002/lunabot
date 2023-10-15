@@ -515,10 +515,6 @@ class ServerEvent(commands.Cog):
         player = self.players[msg.author.id]
         await player.on_msg()
 
-        if msg.author.id not in self.has_welcomed:
-            if msg.content.lower().startswith('welc'):
-                await player.on_welc()
-
         if player.msg_count % LOW_PERIOD == 0:
             await player.on_500()
         
@@ -527,6 +523,10 @@ class ServerEvent(commands.Cog):
         
         if msg.channel.id != self.general_id:
             return 
+
+        if msg.author.id not in self.has_welcomed:
+            if msg.content.lower().startswith('welc'):
+                await player.on_welc()
 
         self.msg_counter += 1
         if self.msg_counter >= self.msgs_needed:
@@ -848,7 +848,7 @@ class ServerEvent(commands.Cog):
                     stats[team.name] = {}
 
                 query = 'select user_id, count(user_id) as freq from se_log where team = ? and type IN ? and time < ? group by user_id order by freq desc limit 1'
-                row = await self.bot.db.fetchrow(query, team.name, types, int(end.timestamp()))
+                row = await self.bot.db.fetchrow(query, team.name, f'({types})', int(end.timestamp()))
                 stats['mvp'] = (self.players[row['user_id']], row['freq'])
 
                 query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
@@ -892,7 +892,7 @@ class ServerEvent(commands.Cog):
                     stats[team.name] = {}
 
                 query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
-                rows = await self.bot.db.fetch(query, team.name, types, int(end.timestamp()))
+                rows = await self.bot.db.fetch(query, team.name, f'({types})', int(end.timestamp()))
 
                 for row in rows:
                     if row['user_id'] not in player_stats:
@@ -946,6 +946,7 @@ class ServerEvent(commands.Cog):
                 rows_list.append((team, rows))
 
             data = data_from_rows(rows_list)
+            print(data)
             file = await plot_data(self.bot, data)
             embed = discord.Embed(title='Trivia points earned', color=0xcab7ff)
             for team in teams:
