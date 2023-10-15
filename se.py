@@ -489,7 +489,7 @@ class ServerEvent(commands.Cog):
                 await channel.send(f'You got the answer right! You earned **{points}** points.')
             else:
                 await player.team.opp.captain.remove_points(points, 'steal_trivia')
-                await player.add_points(points, 'steal_trivia')
+                await player.add_points(points, 'trivia')
                 await channel.send(f'You got the answer right! You stole **{points}** points from the other team.')
         else:
             await channel.send(f'You got the answer wrong! The correct answer was **{a}**.')
@@ -979,8 +979,8 @@ class ServerEvent(commands.Cog):
                 if team.name not in stats:
                     stats[team.name] = {}
 
-                query = 'select user_id, gain, time from se_log where team = ? and type = ? and time < ?'
-                rows = await self.bot.db.fetch(query, team.name, 'stolen', int(end.timestamp()))
+                query = 'select user_id, gain, time from se_log where team = ? and type in (?, ?) and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, 'stolen', 'steal_trivia', int(end.timestamp()))
 
                 for row in rows:
                     if row['user_id'] not in player_stats:
