@@ -18,41 +18,41 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 
-START_TIME = datetime(2023, 10, 15, 13).astimezone(ZoneInfo('US/Central'))
-OPTION3_TIME = 30 
-OPTION4_TIME = 30 
-OPTION5_TIME = 30 
-OPTION5_CD = 10 
-LOW_PERIOD = 5 
-HIGH_PERIOD = 10 
-INDIV_REDUCED_CD = 1 
-TEAM_REDUCED_CD = 1 
-BASE_CD = 3 
-INDIV_DOUBLE_TIME = 30 
-TEAM_DOUBLE_TIME = 30 
-INDIV_TRIPLE_TIME = 15 
-TEAM_TRIPLE_TIME = 15 
-INDIV_REDUCED_CD_TIME = 30 
-TEAM_REDUCED_CD_TIME = 30
-WELC_CD = 30 
+# START_TIME = datetime(2023, 10, 15, 13).astimezone(ZoneInfo('US/Central'))
+# OPTION3_TIME = 30 
+# OPTION4_TIME = 30 
+# OPTION5_TIME = 30 
+# OPTION5_CD = 10 
+# LOW_PERIOD = 5 
+# HIGH_PERIOD = 10 
+# INDIV_REDUCED_CD = 1 
+# TEAM_REDUCED_CD = 1 
+# BASE_CD = 3 
+# INDIV_DOUBLE_TIME = 30 
+# TEAM_DOUBLE_TIME = 30 
+# INDIV_TRIPLE_TIME = 15 
+# TEAM_TRIPLE_TIME = 15 
+# INDIV_REDUCED_CD_TIME = 30 
+# TEAM_REDUCED_CD_TIME = 30
+# WELC_CD = 30 
 
-# START_TIME = datetime(2023, 10, 16, 0).astimezone(ZoneInfo('US/Central'))
-# OPTION3_TIME = 30 * 60
-# OPTION4_TIME = 20 * 60
-# OPTION5_TIME = 25 * 60
-# OPTION5_CD = 60 
-# LOW_PERIOD = 500 
-# HIGH_PERIOD = 1000
-# INDIV_REDUCED_CD = 60
-# TEAM_REDUCED_CD = 120
-# BASE_CD = 180
-# INDIV_DOUBLE_TIME = 15 * 60
-# TEAM_DOUBLE_TIME = 5 * 60
-# INDIV_TRIPLE_TIME = 15 * 60
-# TEAM_TRIPLE_TIME = 5 * 60
-# INDIV_REDUCED_CD_TIME = 30 * 60
-# TEAM_REDUCED_CD_TIME = 30 * 60
-# WELC_CD = 5 * 60
+START_TIME = datetime(2023, 10, 16, 0).astimezone(ZoneInfo('US/Central'))
+OPTION3_TIME = 30 * 60
+OPTION4_TIME = 20 * 60
+OPTION5_TIME = 25 * 60
+OPTION5_CD = 60 
+LOW_PERIOD = 500 
+HIGH_PERIOD = 1000
+INDIV_REDUCED_CD = 60
+TEAM_REDUCED_CD = 120
+BASE_CD = 180
+INDIV_DOUBLE_TIME = 15 * 60
+TEAM_DOUBLE_TIME = 5 * 60
+INDIV_TRIPLE_TIME = 15 * 60
+TEAM_TRIPLE_TIME = 5 * 60
+INDIV_REDUCED_CD_TIME = 30 * 60
+TEAM_REDUCED_CD_TIME = 30 * 60
+WELC_CD = 5 * 60
 
 
 
@@ -136,7 +136,7 @@ class Team:
         }
 
         # comment out later 
-        args.pop('captainping')
+        # args.pop('captainping')
 
         layout = Layout.from_name(self.captain.bot, '1k_private')
         ls = LunaScript.from_layout(self.channel, layout, args=args)
@@ -307,8 +307,8 @@ class ServerEvent(commands.Cog):
         self.msgs_needed = random.randint(15, 35)
 
         # comment out later
-        self.msgs_needed = 3
-        self.test = cycle([0, 1, 2, 3, 4])
+        # self.msgs_needed = 3
+        # self.test = cycle([0, 1, 2, 3, 4])
 
         self.msg_counter = 0  
 
@@ -331,7 +331,7 @@ class ServerEvent(commands.Cog):
     
     def generate_powerup(self):
         # comment out later 
-        return next(self.test)
+        # return next(self.test)
 
         n = random.uniform(0, 1)
         if n < 0.5:
@@ -534,7 +534,7 @@ class ServerEvent(commands.Cog):
             self.msgs_needed = random.randint(15, 35)
             
             #comment out later 
-            self.msgs_needed = 3
+            # self.msgs_needed = 3
 
             if random.choice([True, False]):
                 layout = Layout.from_name(self.bot, 'powerup_spawn')
@@ -597,13 +597,13 @@ class ServerEvent(commands.Cog):
     @commands.command()
     async def redeem(self, ctx):
         # comment out later
-        team = self.players[ctx.author.id].team 
+        # team = self.players[ctx.author.id].team 
         
-        # for team in self.teams.values():
-        #     if ctx.author == team.captain:
-        #         break 
-        # else:
-        #     return 
+        for team in self.teams.values():
+            if ctx.author == team.captain:
+                break 
+        else:
+            return 
         
         if team.redeems == 0:
             return await ctx.send('You have no more powerups to redeem!')
@@ -634,14 +634,14 @@ class ServerEvent(commands.Cog):
     
     @commands.command()
     async def usepowerup(self, ctx):
-        # for team in self.teams.values():
-        #     if ctx.author == team.captain:
-        #         break 
-        # else:
-        #     return 
+        for team in self.teams.values():
+            if ctx.author == team.captain:
+                break 
+        else:
+            return 
 
-        #comment out later
-        team = self.players[ctx.author.id].team
+        # comment out later
+        # team = self.players[ctx.author.id].team
         
         powerups = team.saved_powerups
         if len(powerups) == 0:
@@ -701,7 +701,7 @@ class ServerEvent(commands.Cog):
         for team in self.teams:
             pointlst = []
             for player in self.teams[team].players:
-                pointlst.append(f'**{player.nick}** - {player.points:,}')
+                pointlst.append(f'**{player.nick}** - `{player.points:,}`')
             embed.add_field(name=team, value='\n'.join(pointlst))
         await ctx.send(embed=embed)
     
@@ -712,7 +712,7 @@ class ServerEvent(commands.Cog):
         players = sorted(self.players.values(), key=lambda x: x.points, reverse=True)
         i = 1
         for player in players:
-            pointlst.append(f'#{i}: **{player.nick}** - {player.points:,}')
+            pointlst.append(f'#{i}: **{player.nick}** - `{player.points:,}`')
             i += 1
         embed.description = '\n'.join(pointlst)
         await ctx.send(embed=embed)
