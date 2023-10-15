@@ -5,8 +5,6 @@ import time
 import json 
 import random 
 from discord import ui 
-import matplotlib.pyplot as plt
-import numpy as np 
 import asyncio 
 from lunascript import Layout, LunaScript
 from se_charts import plot_data
@@ -302,7 +300,7 @@ class ServerEvent(commands.Cog):
         self.teams = {}
         self.players = {}
         self.guild_id = 899108709450543115
-        self.general_id = 899725913586032701
+        self.general_id = 899108709903532032
         self.channel_ids = {1158930467337293905, 1158931468664446986, self.general_id}
         self.msgs_needed = random.randint(15, 35)
 
@@ -348,8 +346,20 @@ class ServerEvent(commands.Cog):
     async def cog_load(self):
 
         playerdict = {
-            'bunny': [718475543061987329,496225545529327616],
-            'kitty': [687661271989878860,862746477856292884]
+            'bunny': [
+                496225545529327616,
+                675058943596298340,
+                713118404017651773,
+                915088419535863828,
+                1098065917159690270
+            ],
+            'kitty': [
+                687661271989878860,
+                656526348856197139,
+                1022880540677914714,
+                376171072422281236,
+                1059048815245668403
+            ] 
         }
         channels = {
             'bunny': 1158930467337293905,
@@ -358,8 +368,14 @@ class ServerEvent(commands.Cog):
         nicks = {
             496225545529327616: 'Luna',
             687661271989878860: 'Nemi',
-            718475543061987329: 'Storch',
-            862746477856292884: 'Storch 2'
+            675058943596298340: 'Molly',
+            713118404017651773: 'Lux',
+            915088419535863828: 'Yura',
+            1098065917159690270: 'Kayine',
+            656526348856197139: 'Josh',
+            1022880540677914714: 'Cedar',
+            376171072422281236: 'Sharky',
+            1059048815245668403: 'Kohi',
         }
 
         for team, members in playerdict.items():
