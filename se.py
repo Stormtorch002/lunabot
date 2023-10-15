@@ -834,25 +834,26 @@ class ServerEvent(commands.Cog):
         
         elif flags.stat in {'powerup', 'powerups'}:
             rows_list = []
-            types = ','.join([
+            types = [
                 'topup_powerup',
                 'steal_powerup',
                 'trivia_powerup',
                 'multi_powerup',
                 'cd_powerup'
-            ])
+            ]
+            placeholders = ','.join(['?']*len(types))
             stats = {}
 
             for team in teams:
                 if team.name not in stats:
                     stats[team.name] = {}
 
-                query = 'select user_id, count(user_id) as freq from se_log where team = ? and type IN ? and time < ? group by user_id order by freq desc limit 1'
-                row = await self.bot.db.fetchrow(query, team.name, f'({types})', int(end.timestamp()))
+                query = f'select user_id, count(user_id) as freq from se_log where team = ? and type IN {placeholders} and time < ? group by user_id order by freq desc limit 1'
+                row = await self.bot.db.fetchrow(query, team.name, *types, int(end.timestamp()))
                 stats['mvp'] = (self.players[row['user_id']], row['freq'])
 
-                query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
-                rows = await self.bot.db.fetch(query, team.name, types, int(end.timestamp()))
+                query = f'select user_id, gain, time from se_log where team = ? and type in {placeholders} and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, *types, int(end.timestamp()))
                 stats[team.name]['powerups'] = len(rows)    
                 rows_list.append((team, rows))
 
@@ -877,12 +878,14 @@ class ServerEvent(commands.Cog):
         
         elif flags.stat in {'bonus', 'bonuses'}:
             rows_list = []
-            types = ','.join([
+            types = [
                 'welc_bonus',
                 '500_bonus',
                 'topup_bonus',
                 'steal_bonus'
-            ])
+            ]
+            placeholders = ','.join(['?']*len(types))
+
             stats = {}
             player_stats = {}
     
@@ -891,8 +894,8 @@ class ServerEvent(commands.Cog):
                 if team.name not in stats:
                     stats[team.name] = {}
 
-                query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
-                rows = await self.bot.db.fetch(query, team.name, f'({types})', int(end.timestamp()))
+                query = f'select user_id, gain, time from se_log where team = ? and type in {placeholders} and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, *types, int(end.timestamp()))
 
                 for row in rows:
                     if row['user_id'] not in player_stats:
