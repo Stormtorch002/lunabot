@@ -213,6 +213,90 @@ def firstthing():
         'Made a now deleted role called "Luna and Nemi 4 life 😍😍"',
     ]
 
+def longestmod():
+    return [
+        "Fwogiie",
+        "Miku",
+        "Sunny",
+    ]
+
+def fwoggieadmin():
+    return [
+        "To code a bot for the server",
+"She applied for admin",
+"Nemi promoted her on accident",
+    ]
+
+
+def dec2021icon():
+    return [
+        "Josh",
+"Dochi",
+"Nemi",
+    ]
+
+def paris():
+    return [
+        "One of Luna's irls",
+"One of Nemi's irls",
+"The 1st member excluding Luna and Nemi",
+    ]
+
+
+def hit4k():
+    return [
+        "2/23/23",
+"10/19/22",
+"9/1/23",
+    ]
+
+def motto():
+    return [
+        "Your go-to sfw aes + art server",
+"A place where everyone is included and loved",
+".gg/lunaxnemi loves you",
+    ]
+
+
+def headadmins():
+    return [
+        "Cedar, Levi, Fwogiie",
+"Josh, Fwogiie, Miku",
+"Tyler, Cedar, Levi",
+    ]
+
+
+def madelunabot():
+    return [
+        "Fwogiie",
+"Luna",
+"Nemi",
+    ]
+
+
+def madelumibot():
+    return [
+        "Stormtorch aka Storch",
+"Tyler",
+"Molly",
+    ]
+
+
+def fivehundreth():
+    return [
+        "Molly",
+        "Terrace",
+        "Josh",
+    ]
+
+
+def madeaibot():
+    return [
+        "Nemi",
+"Levi",
+"Frosting",
+    ]
+
 questions = [
     ("What is Luna's favorite hex code??", '#cab7ff', random_hex),
     ("What is Nemi's favorite hex code??", "#9900bb", random_hex),
@@ -238,4 +322,15 @@ questions = [
     ("Who made these Luna emotes?? <:LC_Luna_woah_YumBun_NF2U:1118227655116988426> <:LC_Luna_peek_YumBun_NF2U:1118292331192393738> <:LC_Luna_rich_YumBun_NF2U:1118392831317385248>", "YumBun", notyumbum),
     ("What was the first thing Luna did when she created the server??", "Spam ping Nemi with the sticker welcome", firstthing),
     ("When did Josh first join Lumi Corp??", "11/14/21", josh),
+    ("Who is the mod who has been with us the longest??", "Soy Sauce"),
+    ("Why did Fwogiie get admin??", "Luna gave her the role so she could try to get the December 2021 server icon to upload", fwoggieadmin),
+    ("Who made the server icon for December 2021?? Hint: it's the very first pinned message in chat", "Fwogiie", dec2021icon),
+    ("Who was Paris??" ,"An ex mod from 2021", paris),
+    ("When did we hit 4k members??", "6/23/23", hit4k),
+    ("What is Lumi Corp's motto??", "We <3 you here @ .gg/lunaxnemi", motto),
+    ("Who were the 3 head admins before the role got merged with the admin role??", "Fwogiie, Josh, Levi", headadmins),
+    ("Who made Lunabot?? **Hint: this bot**", "Stormtorch aka Storch", madelunabot),
+    ("Who made Lumi Bot?? **Hint: NOT this bot**", "Fwogiie", madelumibot),
+    ("Who is our 500th member??", "Jinny", fivehundreth),
+    ("Who helped us get our Luna AI bot??", "Molly", madeaibot)
 ]

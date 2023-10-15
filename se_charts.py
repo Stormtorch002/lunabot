@@ -7,6 +7,16 @@ from pytz import timezone
 from discord import File
 
 
+params = {
+    "ytick.color" : "w",
+    "xtick.color" : "w",
+    "axes.labelcolor" : "w",
+    "axes.edgecolor" : "w",
+    "figure.dpi": 300,
+}
+plt.rcParams.update(params)
+
+
 async def plot_data(bot, data):
     buf = await bot.loop.run_in_executor(None, plot_data_sync, data)
     return File(fp=buf, filename='plot.png')    
@@ -20,13 +30,6 @@ def plot_data_sync(data):
     # Convert the data to a list of datetime objects and a list of values.
 
     # Create the plot.
-    params = {
-        "ytick.color" : "w",
-        "xtick.color" : "w",
-        "axes.labelcolor" : "w",
-        "axes.edgecolor" : "w"
-    }
-    plt.rcParams.update(params)
     fig = plt.figure(figsize=(8, 5))
     # set background colo
     fig.set_facecolor('#36393f')
