@@ -124,6 +124,8 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             else:
                 if ar.embed:
                     embed = self.bot.embeds.get(ar.embed)
+                    if embed is None:
+                        embed = discord.Embed.from_dict(json.loads(ar.embed))
                 else:
                     embed = None
 
