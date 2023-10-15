@@ -775,6 +775,11 @@ class ServerEvent(commands.Cog):
             teams = self.teams.values()
         else:
             teams = [team] 
+        
+        def key(x):
+            if x.member.id not in player_stats:
+                return 0
+            return player_stats[x.member.id]
 
         if flags.stat in {'msg', 'messages', 'message', 'msgs'}:
             rows_list = []
@@ -902,7 +907,8 @@ class ServerEvent(commands.Cog):
             file = await plot_data(self.bot, data)
             embed = discord.Embed(title='Bonus points earned', color=0xcab7ff)
             for team in teams:
-                mvp = max(team.players, key=lambda x: player_stats[x.member.id])
+
+                mvp = max(team.players, key=key)
                 count = player_stats[mvp.member.id]
                 total = stats[team.name]['total']
                 earliest = start.timestamp()
@@ -944,7 +950,7 @@ class ServerEvent(commands.Cog):
             file = await plot_data(self.bot, data)
             embed = discord.Embed(title='Trivia points earned', color=0xcab7ff)
             for team in teams:
-                mvp = max(team.players, key=lambda x: player_stats[x.member.id])
+                mvp = max(team.players, key=key)
                 count = player_stats[mvp.member.id]
                 total = stats[team.name]['total']
                 earliest = start.timestamp()
@@ -986,7 +992,7 @@ class ServerEvent(commands.Cog):
             file = await plot_data(self.bot, data)
             embed = discord.Embed(title='Points stolen', color=0xcab7ff)
             for team in teams:
-                mvp = max(team.players, key=lambda x: player_stats[x.member.id])
+                mvp = max(team.players, key=key)
                 count = player_stats[mvp.member.id]
                 total = stats[team.name]['total']
                 earliest = start.timestamp()
@@ -1028,7 +1034,7 @@ class ServerEvent(commands.Cog):
             file = await plot_data(self.bot, data)
             embed = discord.Embed(title='Points from welcoming', color=0xcab7ff)
             for team in teams:
-                mvp = max(team.players, key=lambda x: player_stats[x.member.id])
+                mvp = max(team.players, key=key)
                 count = player_stats[mvp.member.id]
                 total = stats[team.name]['total']
                 earliest = start.timestamp()
