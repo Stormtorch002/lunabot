@@ -515,10 +515,6 @@ class ServerEvent(commands.Cog):
         player = self.players[msg.author.id]
         await player.on_msg()
 
-        if msg.author.id not in self.has_welcomed:
-            if msg.content.lower().startswith('welc'):
-                await player.on_welc()
-
         if player.msg_count % LOW_PERIOD == 0:
             await player.on_500()
         
@@ -527,6 +523,10 @@ class ServerEvent(commands.Cog):
         
         if msg.channel.id != self.general_id:
             return 
+
+        if msg.author.id not in self.has_welcomed:
+            if msg.content.lower().startswith('welc'):
+                await player.on_welc()
 
         self.msg_counter += 1
         if self.msg_counter >= self.msgs_needed:
