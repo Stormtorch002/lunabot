@@ -759,7 +759,8 @@ class ServerEvent(commands.Cog):
                         break 
                     count += row['gain']
 
-                data.append((row['time'], count))
+                if i != 0:
+                    data.append((row['time'], count))
 
                 while i < len(rows):
                     row = rows[i]
