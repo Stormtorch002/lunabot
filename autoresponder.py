@@ -701,7 +701,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             embed.description = '\n'.join([f'{phrase} ({detection})' for phrase, detection in ars])
             embeds.append(embed)
             
-        view = RoboPages(AutoSource(embeds), ctx=ctx)
+        view = RoboPages(AutoSource(embeds, per_page=1), ctx=ctx)
         await view.start()
 
 
