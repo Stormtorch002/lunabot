@@ -907,9 +907,8 @@ class ServerEvent(commands.Cog):
             file = await plot_data(self.bot, data)
             embed = discord.Embed(title='Bonus points earned', color=0xcab7ff)
             for team in teams:
-
                 mvp = max(team.players, key=key)
-                count = player_stats[mvp.member.id]
+                count = player_stats.get(mvp.member.id, 0)
                 total = stats[team.name]['total']
                 earliest = start.timestamp()
                 latest = end.timestamp()
@@ -951,7 +950,7 @@ class ServerEvent(commands.Cog):
             embed = discord.Embed(title='Trivia points earned', color=0xcab7ff)
             for team in teams:
                 mvp = max(team.players, key=key)
-                count = player_stats[mvp.member.id]
+                count = player_stats.get(mvp.member.id, 0)
                 total = stats[team.name]['total']
                 earliest = start.timestamp()
                 latest = end.timestamp()
@@ -993,7 +992,7 @@ class ServerEvent(commands.Cog):
             embed = discord.Embed(title='Points stolen', color=0xcab7ff)
             for team in teams:
                 mvp = max(team.players, key=key)
-                count = player_stats[mvp.member.id]
+                count = player_stats.get(mvp.member.id, 0)
                 total = stats[team.name]['total']
                 earliest = start.timestamp()
                 latest = end.timestamp()
@@ -1035,7 +1034,7 @@ class ServerEvent(commands.Cog):
             embed = discord.Embed(title='Points from welcoming', color=0xcab7ff)
             for team in teams:
                 mvp = max(team.players, key=key)
-                count = player_stats[mvp.member.id]
+                count = player_stats.get(mvp.member.id, 0)
                 total = stats[team.name]['total']
                 earliest = start.timestamp()
                 latest = end.timestamp()
