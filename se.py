@@ -1023,8 +1023,8 @@ class ServerEvent(commands.Cog):
                 for row in rows:
                     if row['user_id'] not in player_stats:
                         player_stats[row['user_id']] = 0
-                    player_stats[row['user_id']] -= row['gain']
-                    total -= row['gain']
+                    player_stats[row['user_id']] += row['gain']
+                    total += row['gain']
 
                 stats[team.name]['total'] = total    
                 rows_list.append((team, rows))
