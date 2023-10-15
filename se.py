@@ -848,11 +848,11 @@ class ServerEvent(commands.Cog):
                 if team.name not in stats:
                     stats[team.name] = {}
 
-                query = f'select user_id, count(user_id) as freq from se_log where team = ? and type IN {placeholders} and time < ? group by user_id order by freq desc limit 1'
+                query = f'select user_id, count(user_id) as freq from se_log where team = ? and type IN ({placeholders}) and time < ? group by user_id order by freq desc limit 1'
                 row = await self.bot.db.fetchrow(query, team.name, *types, int(end.timestamp()))
                 stats['mvp'] = (self.players[row['user_id']], row['freq'])
 
-                query = f'select user_id, gain, time from se_log where team = ? and type in {placeholders} and time < ?'
+                query = f'select user_id, gain, time from se_log where team = ? and type in ({placeholders}) and time < ?'
                 rows = await self.bot.db.fetch(query, team.name, *types, int(end.timestamp()))
                 stats[team.name]['powerups'] = len(rows)    
                 rows_list.append((team, rows))
@@ -894,7 +894,7 @@ class ServerEvent(commands.Cog):
                 if team.name not in stats:
                     stats[team.name] = {}
 
-                query = f'select user_id, gain, time from se_log where team = ? and type in {placeholders} and time < ?'
+                query = f'select user_id, gain, time from se_log where team = ? and type in ({placeholders}) and time < ?'
                 rows = await self.bot.db.fetch(query, team.name, *types, int(end.timestamp()))
 
                 for row in rows:
