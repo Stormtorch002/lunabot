@@ -34,7 +34,7 @@ from zoneinfo import ZoneInfo
 # TEAM_REDUCED_CD_TIME = 30
 # WELC_CD = 30 
 
-START_TIME = datetime(2023, 10, 16, 0).astimezone(ZoneInfo('US/Central'))
+START_TIME = datetime(2023, 10, 16, 8).astimezone(ZoneInfo('US/Central'))
 OPTION3_TIME = 30 * 60
 OPTION4_TIME = 20 * 60
 OPTION5_TIME = 25 * 60
@@ -1069,7 +1069,6 @@ class ServerEvent(commands.Cog):
                 embed.add_field(name=team.name.capitalize(), value=val)
             await ctx.send(embed=embed, file=file)
         
-
 async def setup(bot):
     await bot.add_cog(ServerEvent(bot))
 
