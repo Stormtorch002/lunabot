@@ -718,7 +718,7 @@ class ServerEvent(commands.Cog):
             pointlst = []
             for player in self.teams[team].players:
                 pointlst.append(f'**{player.nick}** - `{player.points:,}`')
-            embed.add_field(name=team, value='\n'.join(pointlst))
+            embed.add_field(name=f'Team {team.capitalize()}', value='\n'.join(pointlst))
         await ctx.send(embed=embed)
     
     @commands.command()
