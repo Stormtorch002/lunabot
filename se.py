@@ -18,7 +18,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 
-START_TIME = datetime(2023, 10, 10, 11).astimezone(ZoneInfo('US/Central'))
+START_TIME = datetime(2023, 10, 15, 13).astimezone(ZoneInfo('US/Central'))
 OPTION3_TIME = 30 
 OPTION4_TIME = 30 
 OPTION5_TIME = 30 
@@ -97,6 +97,7 @@ class Multiplier(Powerup):
         super().__init__(start, end)
         self.n = n 
         self.name = 'Multiplier'
+        self.log_name = 'multi_powerup'
     
 
 class CooldownReducer(Powerup):
@@ -104,6 +105,7 @@ class CooldownReducer(Powerup):
         super().__init__(start, end)
         self.n = cd 
         self.name = 'Cooldown Reducer'
+        self.log_name = 'cd_powerup'
 
 
 class Team:
@@ -142,14 +144,14 @@ class Team:
     
     async def option1(self):
         points = random.randint(15, 20)
-        await self.captain.add_points(points, 'topup_powerup')
+        await self.captain.add_points(points, 'topup_bonus')
         await self.captain.log_powerup('topup_powerup')
         return points
     
     async def option2(self):
         points = random.randint(10, 15)
         await self.opp.captain.remove_points(points, 'stolen')
-        await self.captain.add_points(points, 'steal_powerup')
+        await self.captain.add_points(points, 'steal_bonus')
         await self.captain.log_powerup('steal_powerup')
         return points
     
@@ -173,7 +175,12 @@ class Team:
     
     async def option5(self):
         for player in self.players:
-            await player.apply_powerup(CooldownReducer(OPTION5_CD, time.time(), time.time() + OPTION5_TIME))
+            if player == self.captain:
+                log = True 
+            else: 
+                log = False
+
+            await player.apply_powerup(CooldownReducer(OPTION5_CD, time.time(), time.time() + OPTION5_TIME), log=log)
 
 
     @property 
@@ -221,7 +228,7 @@ class Player:
         await self.bot.db.execute(query, self.member.id, powerup.name, powerup.n, powerup.start, powerup.end)
         self.bot.loop.create_task(self.task(powerup))
         if log:
-            await self.log_powerup(powerup.name)
+            await self.log_powerup(powerup.log_name)
 
     def apply_powerups(self):
         for powerup in self.powerups:
@@ -239,7 +246,7 @@ class Player:
             return
         self.next_welc = time.time() + WELC_CD 
         bonus = random.randint(1, 3)
-        await self.add_points(bonus, 'welc')
+        await self.add_points(bonus, 'welc_bonus')
         layout = Layout.from_name(self.bot, 'welc_bonus')
         args = {
             'points': bonus,
@@ -412,6 +419,8 @@ class ServerEvent(commands.Cog):
         return ctx.author.id in self.players or ctx.author.id == 718475543061987329
 
     async def trivia(self, player, channel, steal=False):
+        await player.log_powerup('trivia_powerup')
+
         q_tuple = self.questions[self.questions_i]
         q = q_tuple[0]
         a = q_tuple[1]
@@ -548,6 +557,7 @@ class ServerEvent(commands.Cog):
                 layout = None 
 
                 if powerup_i == 0:
+                    await player.log_powerup('1k')
                     await self.trivia(player, msg.channel)
                 elif powerup_i == 1:
                     await self.trivia(player, msg.channel, steal=True)
@@ -709,7 +719,15 @@ class ServerEvent(commands.Cog):
 
     @commands.command()
     async def teamstats(self, ctx, *, flags: TeamStatsFlags):
-        if flags.stat.lower() not in {'msgs', 'msg', 'message', 'messages', 'points', 'pts', 'powerup', 'powerups', 'bonuses', 'bonus', 'trivia', 'stolen', 'stole', 'welc', 'welcs'}:
+        if flags.stat.lower() not in {
+            'msgs', 'msg', 'message', 'messages', 
+            'points', 'pts', 
+            'powerup', 'powerups', 
+            'bonuses', 'bonus', 
+            'trivia', 
+            'stolen', 'stole', 'steals', 
+            'welc', 'welcs'
+        }:
             return await ctx.send('That is not a valid option!')
         if flags.team is None:
             team = self.players[ctx.author.id].team
@@ -752,22 +770,6 @@ class ServerEvent(commands.Cog):
 
             return ret
         
-        def data_from_powerups(rows_list):
-            ret = []
-            for team, rows in rows_list:
-                data = []
-                # find the initial msg count 
-                count = 0 
-                for row in rows:
-                    if row['start_time'] > int(start.timestamp()):
-                        break 
-                    count += 1 
-                data.append((row['start_time'], count))
-                for row in rows[count:]:
-                    data.append((row['start_time'], data[-1][1] + 1))
-                ret.append((team, data))
-            return ret
-
         if team == 'both':
             teams = self.teams.values()
         else:
@@ -807,7 +809,7 @@ class ServerEvent(commands.Cog):
                 rows_list.append((team, rows))
             data = data_from_rows(rows_list)
             file = await plot_data(self.bot, data)
-            embed = discord.Embed(title='Points gained', color=0xcab7ff)
+            embed = discord.Embed(title='Points earned', color=0xcab7ff)
             for i, team in enumerate(teams):
                 mvp = max(team.players, key=lambda x: x.points)
                 earliest = start.timestamp()
@@ -826,30 +828,229 @@ class ServerEvent(commands.Cog):
         
         elif flags.stat in {'powerup', 'powerups'}:
             rows_list = []
+            types = [
+                'topup_powerup',
+                'steal_powerup',
+                'trivia_powerup',
+                'multi_powerup',
+                'cd_powerup'
+            ]
+            stats = {}
+
             for team in teams:
-                query = 'select start_time from powerups where team = ? and time < ?'
-                rows = await self.bot.db.fetch(query, team.name, int(end.timestamp()))
+                if team.name not in stats:
+                    stats[team.name] = {}
+
+                query = 'select user_id, count(user_id) as freq from se_log where team = ? and type in ? and time < ? group by user_id order by freq desc limit 1'
+                row = await self.bot.db.fetchrow(query, team.name, types, int(end.timestamp()))
+                stats['mvp'] = (self.players[row['user_id']], row['freq'])
+
+                query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, types, int(end.timestamp()))
+                stats[team.name]['powerups'] = len(rows)    
                 rows_list.append((team, rows))
-            data = data_from_powerups(rows_list)
+
+            data = data_from_rows(rows_list)
             file = await plot_data(self.bot, data)
-            embed = discord.Embed(title='Powerups gained', color=0xcab7ff)
+            embed = discord.Embed(title='Powerups obtained', color=0xcab7ff)
             for i, team in enumerate(teams):
-                mvp = max(team.players, key=lambda x: x.points)
+                mvp, count = stats[team.name]['mvp']
+                powerups = stats[team.name]['powerups']
                 earliest = start.timestamp()
                 latest = end.timestamp()
 
-                points = team.total_points
                 val = f'''
-                Total: **{points:,}**
-                Average per player: **{points / len(team.players):.2f}**
-                Team MVP: **{mvp.nick}** ({mvp.points:,})
-                Average per hour: **{points / ((latest - earliest) / 3600):.2f}**
-                Average per day: **{points / ((latest - earliest) / 86400):.2f}**
+                Total: **{powerups:,}**
+                Average per player: **{powerups / len(team.players):.2f}**
+                Team MVP: **{mvp.nick}** ({count:,})
+                Average per hour: **{powerups / ((latest - earliest) / 3600):.2f}**
+                Average per day: **{powerups / ((latest - earliest) / 86400):.2f}**
                 '''
                 embed.add_field(name=team.name.capitalize(), value=val)
             await ctx.send(embed=embed, file=file)
+        
+        elif flags.stat in {'bonus', 'bonuses'}:
+            rows_list = []
+            types = [
+                'welc_bonus',
+                '500_bonus',
+                'topup_bonus',
+                'steal_bonus'
+            ]
+            stats = {}
+            player_stats = {}
+    
+            for team in teams:
+                total = 0
+                if team.name not in stats:
+                    stats[team.name] = {}
 
+                query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, types, int(end.timestamp()))
 
+                for row in rows:
+                    if row['user_id'] not in player_stats:
+                        player_stats[row['user_id']] = 0
+                    player_stats[row['user_id']] += row['gain']
+                    total += row['gain']
+
+                stats[team.name]['total'] = total    
+                rows_list.append((team, rows))
+
+            data = data_from_rows(rows_list)
+            file = await plot_data(self.bot, data)
+            embed = discord.Embed(title='Bonus points earned', color=0xcab7ff)
+            for team in teams:
+                mvp = max(team.players, key=lambda x: player_stats[x.member.id])
+                count = player_stats[mvp.member.id]
+                total = stats[team.name]['total']
+                earliest = start.timestamp()
+                latest = end.timestamp()
+
+                val = f'''
+                Total: **{total:,}**
+                Average per player: **{total / len(team.players):.2f}**
+                Team MVP: **{mvp.nick}** ({count:,})
+                Average per hour: **{total / ((latest - earliest) / 3600):.2f}**
+                Average per day: **{total / ((latest - earliest) / 86400):.2f}**
+                '''
+                embed.add_field(name=team.name.capitalize(), value=val)
+            await ctx.send(embed=embed, file=file)
+        
+        elif flags.stat == 'trivia':
+            rows_list = []
+            types = [
+                'trivia'
+            ]
+            stats = {}
+            player_stats = {}
+    
+            for team in teams:
+                total = 0
+                if team.name not in stats:
+                    stats[team.name] = {}
+
+                query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, types, int(end.timestamp()))
+
+                for row in rows:
+                    if row['user_id'] not in player_stats:
+                        player_stats[row['user_id']] = 0
+                    player_stats[row['user_id']] += row['gain']
+                    total += row['gain']
+
+                stats[team.name]['total'] = total    
+                rows_list.append((team, rows))
+
+            data = data_from_rows(rows_list)
+            file = await plot_data(self.bot, data)
+            embed = discord.Embed(title='Trivia points earned', color=0xcab7ff)
+            for team in teams:
+                mvp = max(team.players, key=lambda x: player_stats[x.member.id])
+                count = player_stats[mvp.member.id]
+                total = stats[team.name]['total']
+                earliest = start.timestamp()
+                latest = end.timestamp()
+
+                val = f'''
+                Total: **{total:,}**
+                Average per player: **{total / len(team.players):.2f}**
+                Team MVP: **{mvp.nick}** ({count:,})
+                Average per hour: **{total / ((latest - earliest) / 3600):.2f}**
+                Average per day: **{total / ((latest - earliest) / 86400):.2f}**
+                '''
+                embed.add_field(name=team.name.capitalize(), value=val)
+            await ctx.send(embed=embed, file=file)
+            
+        elif flags.stat in {'stolen', 'stole', 'steals'}:
+            rows_list = []
+            types = [
+                'stolen'
+            ]
+            stats = {}
+            player_stats = {}
+    
+            for team in teams:
+                total = 0
+                if team.name not in stats:
+                    stats[team.name] = {}
+
+                query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, types, int(end.timestamp()))
+
+                for row in rows:
+                    if row['user_id'] not in player_stats:
+                        player_stats[row['user_id']] = 0
+                    player_stats[row['user_id']] -= row['gain']
+                    total -= row['gain']
+
+                stats[team.name]['total'] = total    
+                rows_list.append((team, rows))
+
+            data = data_from_rows(rows_list)
+            file = await plot_data(self.bot, data)
+            embed = discord.Embed(title='Points stolen', color=0xcab7ff)
+            for team in teams:
+                mvp = max(team.players, key=lambda x: player_stats[x.member.id])
+                count = player_stats[mvp.member.id]
+                total = stats[team.name]['total']
+                earliest = start.timestamp()
+                latest = end.timestamp()
+
+                val = f'''
+                Total: **{total:,}**
+                Average per player: **{total / len(team.players):.2f}**
+                Team MVP: **{mvp.nick}** ({count:,})
+                Average per hour: **{total / ((latest - earliest) / 3600):.2f}**
+                Average per day: **{total / ((latest - earliest) / 86400):.2f}**
+                '''
+                embed.add_field(name=team.name.capitalize(), value=val)
+            await ctx.send(embed=embed, file=file)
+        
+        else:
+            rows_list = []
+            types = [
+                'welc_bonus'
+            ]
+            stats = {}
+            player_stats = {}
+    
+            for team in teams:
+                total = 0
+                if team.name not in stats:
+                    stats[team.name] = {}
+
+                query = 'select user_id, gain, time from se_log where team = ? and type in ? and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, types, int(end.timestamp()))
+
+                for row in rows:
+                    if row['user_id'] not in player_stats:
+                        player_stats[row['user_id']] = 0
+                    player_stats[row['user_id']] -= row['gain']
+                    total -= row['gain']
+
+                stats[team.name]['total'] = total    
+                rows_list.append((team, rows))
+
+            data = data_from_rows(rows_list)
+            file = await plot_data(self.bot, data)
+            embed = discord.Embed(title='Points from welcoming', color=0xcab7ff)
+            for team in teams:
+                mvp = max(team.players, key=lambda x: player_stats[x.member.id])
+                count = player_stats[mvp.member.id]
+                total = stats[team.name]['total']
+                earliest = start.timestamp()
+                latest = end.timestamp()
+
+                val = f'''
+                Total: **{total:,}**
+                Average per player: **{total / len(team.players):.2f}**
+                Team MVP: **{mvp.nick}** ({count:,})
+                Average per hour: **{total / ((latest - earliest) / 3600):.2f}**
+                Average per day: **{total / ((latest - earliest) / 86400):.2f}**
+                '''
+                embed.add_field(name=team.name.capitalize(), value=val)
+            await ctx.send(embed=embed, file=file)
         
 
 async def setup(bot):
