@@ -692,7 +692,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
     
     @commands.command()
     async def listar(self, ctx):
-        ars = [(ar.phrase, ar.detection) for ar in self.ars if ar.g]
+        ars = [(ar.phrase, ar.detection) for ar in self.ars if ctx.guild in ar.guilds]
         # split into chunks of 10
         ar_chunks = [ars[i:i+10] for i in range(0, len(ars), 10)]
         embeds = []
