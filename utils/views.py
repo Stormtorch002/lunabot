@@ -68,6 +68,9 @@ async def disambiguate(ctx, matches: list[T], entry: Callable[[T], Any], *, ephe
 
 
 class AutoSource(menus.ListPageSource):
+    def __init__(self):
+        super().__init__(per_page=1)
+
     def format_page(self, menu, page):
         return page 
 
