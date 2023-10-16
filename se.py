@@ -34,7 +34,7 @@ from zoneinfo import ZoneInfo
 # TEAM_REDUCED_CD_TIME = 30
 # WELC_CD = 30 
 
-START_TIME = datetime(2023, 10, 16, 8).astimezone(ZoneInfo('US/Central'))
+START_TIME = datetime.fromtimestamp(1697461200) 
 OPTION3_TIME = 30 * 60
 OPTION4_TIME = 20 * 60
 OPTION5_TIME = 25 * 60
@@ -707,7 +707,7 @@ class ServerEvent(commands.Cog):
     async def teampoints(self, ctx):
         embed = discord.Embed(title='Points for each team', color=0xcab7ff)
         for team in self.teams:
-            embed.add_field(name=team, value=f'{self.teams[team].total_points:,}')
+            embed.add_field(name=team.capitalize(), value=f'{self.teams[team].total_points:,}')
         await ctx.send(embed=embed)
     
     @commands.command()
@@ -769,10 +769,10 @@ class ServerEvent(commands.Cog):
                 i = 0
                 while i < len(rows):
                     row = rows[i]
-                    i += 1
                     if row['time'] > int(start.timestamp()):
                         break 
                     count += row['gain']
+                    i += 1
 
                 if i != 0:
                     data.append((row['time'], count))
