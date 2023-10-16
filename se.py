@@ -384,7 +384,7 @@ class ServerEvent(commands.Cog):
         #         await self.bot.db.execute(query, member, team)
             
         # rows = await self.bot.db.fetch('select * from se_stats')
-        # self.guild = self.bot.get_guild(self.guild_id)
+        self.guild = self.bot.get_guild(self.guild_id)
 
         for team_name, member_id in playerdict.items():
             member = self.guild.get_member(member_id)
