@@ -413,8 +413,12 @@ class ServerEvent(commands.Cog):
 
                     query = 'select sum(gain) from se_log where type not in (?, ?, ?) and user_id = ?' 
                     points = await self.bot.db.fetchval(query, 'msg', 'cd_powerup', 'multi_powerup', member.id)
+                    if points is None:
+                        points = 0
                     query = 'select sum(gain) from se_log where type = ? and user_id = ?' 
                     msgs = await self.bot.db.fetchval(query, 'msg', member.id)
+                    if msgs is None:
+                        msgs = 0 
 
                     team = self.teams[team_name]
                     player = Player(self.bot, team, member, nicks[member.id], points, msgs, powerups)
