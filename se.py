@@ -414,7 +414,7 @@ class ServerEvent(commands.Cog):
             query = 'select sum(gain) from se_log where type = ? and user_id = ?' 
             msgs = await self.bot.db.fetchval(query, 'msg', member.id)
 
-            team = self.teams[team]
+            team = self.teams[team_name]
             player = Player(self.bot, team, member, nicks[member.id], points, msgs, powerups)
             self.players[member.id] = player 
             team.players.append(player)
