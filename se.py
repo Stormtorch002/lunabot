@@ -257,8 +257,8 @@ class Player:
     async def log_msg(self):
         self.msg_count += 1
         self.team.msg_count += 1
-        query = 'update se_stats set msgs = msgs + 1 where user_id = ?'
-        await self.bot.db.execute(query, self.member.id)
+        # query = 'update se_stats set msgs = msgs + 1 where user_id = ?'
+        # await self.bot.db.execute(query, self.member.id)
         query = 'insert into se_log (team, user_id, type, gain, time) values (?, ?, ?, ?, ?)'
         await self.bot.db.execute(query, self.team.name, self.member.id, 'msg', 1, int(time.time()))
 
@@ -272,15 +272,15 @@ class Player:
 
         query = 'insert into se_log (team, user_id, type, gain, time) values (?, ?, ?, ?, ?)'
         await self.bot.db.execute(query, self.team.name, self.member.id, reason, gain, int(time.time()))
-        query = 'update se_stats set points = points + ? where user_id = ?'
-        await self.bot.db.execute(query, gain, self.member.id)
+        # query = 'update se_stats set points = points + ? where user_id = ?'
+        # await self.bot.db.execute(query, gain, self.member.id)
     
     async def remove_points(self, points, reason):
         self.points -= points 
         query = 'insert into se_log (team, user_id, type, gain, time) values (?, ?, ?, ?, ?)'
         await self.bot.db.execute(query, self.team.name, self.member.id, reason, -points, int(time.time()))
-        query = 'update se_stats set points = points - ? where team = ?'
-        await self.bot.db.execute(query, points, self.member.id)
+        # query = 'update se_stats set points = points - ? where team = ?'
+        # await self.bot.db.execute(query, points, self.member.id)
     
     async def on_500(self):
         await self.add_points(25, '500_bonus', multi=False)
@@ -378,28 +378,27 @@ class ServerEvent(commands.Cog):
             1059048815245668403: 'Kohi',
         }
 
-        for team, members in playerdict.items():
-            query = 'insert into se_stats (user_id, team, points, msgs) values (?, ?, 0, 0) on conflict (user_id) do nothing'
-            for member in members:
-                await self.bot.db.execute(query, member, team)
+        # for team, members in playerdict.items():
+        #     query = 'insert into se_stats (user_id, team, points, msgs) values (?, ?, 0, 0) on conflict (user_id) do nothing'
+        #     for member in members:
+        #         await self.bot.db.execute(query, member, team)
             
-        rows = await self.bot.db.fetch('select * from se_stats')
-        self.guild = self.bot.get_guild(self.guild_id)
+        # rows = await self.bot.db.fetch('select * from se_stats')
+        # self.guild = self.bot.get_guild(self.guild_id)
 
-        for row in rows:
-            member = self.guild.get_member(row['user_id'])
+        for team_name, member_id in playerdict.items():
+            member = self.guild.get_member(member_id)
             if member is None:
                 continue 
         
-            team = row['team']
-            if team not in self.teams:
+            if team_name not in self.teams:
                 query = 'insert into redeems (team, number) values (?, 0) on conflict (team) do nothing'
-                await self.bot.db.execute(query, team)
+                await self.bot.db.execute(query, team_name)
                 query = 'select number from redeems where team = ?'
-                redeems = await self.bot.db.fetchval(query, team)
+                redeems = await self.bot.db.fetchval(query, team_name)
                 query = 'select option from saved_powerups where team = ?'
-                saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team)]
-                self.teams[team] = Team(team, [], self.bot.get_channel(channels[team]), redeems, saved_powerups)
+                saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team_name)]
+                self.teams[team_name] = Team(team_name, [], self.bot.get_channel(channels[team_name]), redeems, saved_powerups)
             
             query = 'select name, value, start_time, end_time from powerups where user_id = ? and end_time > ?'
             rows = await self.bot.db.fetch(query, member.id, time.time())
@@ -410,11 +409,13 @@ class ServerEvent(commands.Cog):
                 elif row['name'] == 'Cooldown Reducer':
                     powerups.append(CooldownReducer(row['value'], row['start_time'], row['end_time']))
 
-            query = 'select msgs, points from se_stats where user_id = ?'
-            row = await self.bot.db.fetchrow(query, member.id)
+            query = 'select sum(gain) from se_log where type not in (?, ?, ?) and user_id = ?' 
+            points = await self.bot.db.fetchval(query, 'msg', 'cd_powerup', 'multi_powerup', member.id)
+            query = 'select sum(gain) from se_log where type = ? and user_id = ?' 
+            msgs = await self.bot.db.fetchval(query, 'msg', member.id)
 
             team = self.teams[team]
-            player = Player(self.bot, team, member, nicks[member.id], row['points'], row['msgs'], powerups)
+            player = Player(self.bot, team, member, nicks[member.id], points, msgs, powerups)
             self.players[member.id] = player 
             team.players.append(player)
             team.msg_count += player.msg_count
