@@ -1,4 +1,5 @@
 from typing import Optional
+from textwrap import dedent
 from discord.ext import commands, tasks 
 import discord 
 import time 
@@ -825,13 +826,13 @@ class ServerEvent(commands.Cog):
                 earliest = start.timestamp()
                 latest = end.timestamp()
 
-                val = f'''
+                val = dedent(f'''
                 Total: **{team.msg_count:,}**
                 Average per player: **{team.msg_count / len(team.players):.2f}**
                 Team MVP: **{mvp.nick}** ({mvp.msg_count:,})
                 Average per hour: **{team.msg_count / ((latest - earliest) / 3600):.2f}**
                 Average per day: **{team.msg_count / ((latest - earliest) / 86400):.2f}**
-                '''
+                ''')
                 embed.add_field(name=team.name.capitalize(), value=val)
                 
             await ctx.send(embed=embed, file=file)
@@ -851,13 +852,13 @@ class ServerEvent(commands.Cog):
                 latest = end.timestamp()
 
                 points = team.total_points
-                val = f'''
+                val = dedent(f'''
                 Total: **{points:,}**
                 Average per player: **{points / len(team.players):.2f}**
                 Team MVP: **{mvp.nick}** ({mvp.points:,})
                 Average per hour: **{points / ((latest - earliest) / 3600):.2f}**
                 Average per day: **{points / ((latest - earliest) / 86400):.2f}**
-                '''
+                ''')
                 embed.add_field(name=team.name.capitalize(), value=val)
             await ctx.send(embed=embed, file=file)
         
@@ -895,13 +896,13 @@ class ServerEvent(commands.Cog):
                 earliest = start.timestamp()
                 latest = end.timestamp()
 
-                val = f'''
+                val = dedent(f'''
                 Total: **{powerups:,}**
                 Average per player: **{powerups / len(team.players):.2f}**
                 Team MVP: **{mvp.nick}** ({count:,})
                 Average per hour: **{powerups / ((latest - earliest) / 3600):.2f}**
                 Average per day: **{powerups / ((latest - earliest) / 86400):.2f}**
-                '''
+                ''')
                 embed.add_field(name=team.name.capitalize(), value=val)
             await ctx.send(embed=embed, file=file)
         
@@ -945,13 +946,13 @@ class ServerEvent(commands.Cog):
                 earliest = start.timestamp()
                 latest = end.timestamp()
 
-                val = f'''
+                val = dedent(f'''
                 Total: **{total:,}**
                 Average per player: **{total / len(team.players):.2f}**
                 Team MVP: **{mvp.nick}** ({count:,})
                 Average per hour: **{total / ((latest - earliest) / 3600):.2f}**
                 Average per day: **{total / ((latest - earliest) / 86400):.2f}**
-                '''
+                ''')
                 embed.add_field(name=team.name.capitalize(), value=val)
             await ctx.send(embed=embed, file=file)
         
@@ -988,13 +989,13 @@ class ServerEvent(commands.Cog):
                 earliest = start.timestamp()
                 latest = end.timestamp()
 
-                val = f'''
+                val = dedent(f'''
                 Total: **{total:,}**
                 Average per player: **{total / len(team.players):.2f}**
                 Team MVP: **{mvp.nick}** ({count:,})
                 Average per hour: **{total / ((latest - earliest) / 3600):.2f}**
                 Average per day: **{total / ((latest - earliest) / 86400):.2f}**
-                '''
+                ''')
                 embed.add_field(name=team.name.capitalize(), value=val)
             await ctx.send(embed=embed, file=file)
             
@@ -1030,13 +1031,13 @@ class ServerEvent(commands.Cog):
                 earliest = start.timestamp()
                 latest = end.timestamp()
 
-                val = f'''
+                val = dedent(f'''
                 Total: **{total:,}**
                 Average per player: **{total / len(team.players):.2f}**
                 Team MVP: **{mvp.nick}** ({count:,})
                 Average per hour: **{total / ((latest - earliest) / 3600):.2f}**
                 Average per day: **{total / ((latest - earliest) / 86400):.2f}**
-                '''
+                ''')
                 embed.add_field(name=team.name.capitalize(), value=val)
             await ctx.send(embed=embed, file=file)
         
@@ -1072,13 +1073,13 @@ class ServerEvent(commands.Cog):
                 earliest = start.timestamp()
                 latest = end.timestamp()
 
-                val = f'''
+                val = dedent(f'''
                 Total: **{total:,}**
                 Average per player: **{total / len(team.players):.2f}**
                 Team MVP: **{mvp.nick}** ({count:,})
                 Average per hour: **{total / ((latest - earliest) / 3600):.2f}**
                 Average per day: **{total / ((latest - earliest) / 86400):.2f}**
-                '''
+                ''')
                 embed.add_field(name=team.name.capitalize(), value=val)
             await ctx.send(embed=embed, file=file)
         
