@@ -352,14 +352,20 @@ class ServerEvent(commands.Cog):
                 675058943596298340,
                 713118404017651773,
                 915088419535863828,
-                1098065917159690270
+                1098065917159690270,
+                918620857901928458,
+                816483116067192863,
+                950526903926816769
             ],
             'kitty': [
                 687661271989878860,
                 656526348856197139,
                 1022880540677914714,
                 376171072422281236,
-                1059048815245668403
+                1059048815245668403,
+                1132364499513524234,
+                785037540155195424,
+                920605346920271893
             ] 
         }
         channels = {
@@ -377,6 +383,12 @@ class ServerEvent(commands.Cog):
             1022880540677914714: 'Cedar',
             376171072422281236: 'Sharky',
             1059048815245668403: 'Kohi',
+            918620857901928458: 'Roii',
+            816483116067192863: 'Seabass',
+            950526903926816769: 'Lay',
+            1132364499513524234: 'Ada',
+            785037540155195424: 'Fwoggie',
+            920605346920271893: 'Dremis'
         }
 
         # for team, members in playerdict.items():
@@ -387,59 +399,56 @@ class ServerEvent(commands.Cog):
         # rows = await self.bot.db.fetch('select * from se_stats')
         self.guild = self.bot.get_guild(self.guild_id)
 
-        try:
-            for team_name, member_ids in playerdict.items():
-                for member_id in member_ids: 
-                    member = self.guild.get_member(member_id)
-                    if member is None:
-                        continue 
+        for team_name, member_ids in playerdict.items():
+            for member_id in member_ids: 
+                member = self.guild.get_member(member_id)
+                if member is None:
+                    continue 
+            
+                if team_name not in self.teams:
+                    query = 'insert into redeems (team, number) values (?, 0) on conflict (team) do nothing'
+                    await self.bot.db.execute(query, team_name)
+                    query = 'select number from redeems where team = ?'
+                    redeems = await self.bot.db.fetchval(query, team_name)
+                    query = 'select option from saved_powerups where team = ?'
+                    saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team_name)]
+                    self.teams[team_name] = Team(team_name, [], self.bot.get_channel(channels[team_name]), redeems, saved_powerups)
                 
-                    if team_name not in self.teams:
-                        query = 'insert into redeems (team, number) values (?, 0) on conflict (team) do nothing'
-                        await self.bot.db.execute(query, team_name)
-                        query = 'select number from redeems where team = ?'
-                        redeems = await self.bot.db.fetchval(query, team_name)
-                        query = 'select option from saved_powerups where team = ?'
-                        saved_powerups = [row['option'] for row in await self.bot.db.fetch(query, team_name)]
-                        self.teams[team_name] = Team(team_name, [], self.bot.get_channel(channels[team_name]), redeems, saved_powerups)
-                    
-                    query = 'select name, value, start_time, end_time from powerups where user_id = ? and end_time > ?'
-                    rows = await self.bot.db.fetch(query, member.id, time.time())
-                    powerups = []
-                    for row in rows:
-                        if row['name'] == 'Multiplier':
-                            powerups.append(Multiplier(row['value'], row['start_time'], row['end_time']))
-                        elif row['name'] == 'Cooldown Reducer':
-                            powerups.append(CooldownReducer(row['value'], row['start_time'], row['end_time']))
+                query = 'select name, value, start_time, end_time from powerups where user_id = ? and end_time > ?'
+                rows = await self.bot.db.fetch(query, member.id, time.time())
+                powerups = []
+                for row in rows:
+                    if row['name'] == 'Multiplier':
+                        powerups.append(Multiplier(row['value'], row['start_time'], row['end_time']))
+                    elif row['name'] == 'Cooldown Reducer':
+                        powerups.append(CooldownReducer(row['value'], row['start_time'], row['end_time']))
 
-                    query = 'select sum(gain) from se_log where type not in (?, ?, ?) and user_id = ?' 
-                    points = await self.bot.db.fetchval(query, 'msg', 'cd_powerup', 'multi_powerup', member.id)
-                    if points is None:
-                        points = 0
-                    query = 'select sum(gain) from se_log where type = ? and user_id = ?' 
-                    msgs = await self.bot.db.fetchval(query, 'msg', member.id)
-                    if msgs is None:
-                        msgs = 0 
+                query = 'select sum(gain) from se_log where type not in (?, ?, ?) and user_id = ?' 
+                points = await self.bot.db.fetchval(query, 'msg', 'cd_powerup', 'multi_powerup', member.id)
+                if points is None:
+                    points = 0
+                query = 'select sum(gain) from se_log where type = ? and user_id = ?' 
+                msgs = await self.bot.db.fetchval(query, 'msg', member.id)
+                if msgs is None:
+                    msgs = 0 
 
-                    team = self.teams[team_name]
-                    player = Player(self.bot, team, member, nicks[member.id], points, msgs, powerups)
-                    self.players[member.id] = player 
-                    team.players.append(player)
-                    team.msg_count += player.msg_count
+                team = self.teams[team_name]
+                player = Player(self.bot, team, member, nicks[member.id], points, msgs, powerups)
+                self.players[member.id] = player 
+                team.players.append(player)
+                team.msg_count += player.msg_count
 
-            team1 = self.teams['bunny']
-            team2 = self.teams['kitty']
-            team1.create_captain()
-            team2.create_captain()
-            team1.opp = team2
-            team2.opp = team1
+        team1 = self.teams['bunny']
+        team2 = self.teams['kitty']
+        team1.create_captain()
+        team2.create_captain()
+        team1.opp = team2
+        team2.opp = team1
 
-            self.questions = questions 
-            random.shuffle(self.questions)
-            self.questions_i = 0
+        self.questions = questions 
+        random.shuffle(self.questions)
+        self.questions_i = 0
 
-        except Exception as e:
-            raise e
 
     async def cog_check(self, ctx):
         return ctx.author.id in self.players or ctx.author.id == 718475543061987329
