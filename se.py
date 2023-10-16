@@ -779,7 +779,12 @@ class ServerEvent(commands.Cog):
 
                 while i < len(rows):
                     row = rows[i]
-                    data.append((row['time'], data[-1][1] + row['gain']))
+                    if len(data) == 0:
+                        prev_sum = 0 
+                    else:
+                        prev_sum = data[-1][1]
+
+                    data.append((row['time'], prev_sum + row['gain']))
                     i += 1
 
                 ret.append((team, data))
