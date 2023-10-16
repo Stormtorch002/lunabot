@@ -343,7 +343,7 @@ class ServerEvent(commands.Cog):
         else:
             return 4
 
-    async def cog_load(self):
+    async def og_load(self):
 
         playerdict = {
             'bunny': [
