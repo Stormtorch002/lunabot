@@ -1,6 +1,8 @@
 data.json
 events.json
 test.json 
+vars.json
+webhooks.json
 main.sqlite 
 config.py
 embed_editor/
