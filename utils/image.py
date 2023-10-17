@@ -10,7 +10,7 @@ PBAR_CORNER = (320, 253)
 PBAR_FULL_SIZE = (760-320, 270-252)
 
 numbers = {}
-for i in range(9):
+for i in range(10):
     im = Image.open(f'assets/{i}.png')
     newy = LVL_HEIGHT 
     newx = round(im.size[0] * (newy / im.size[1]))
