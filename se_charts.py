@@ -39,16 +39,17 @@ def plot_data_sync(data):
 
     # add legends
 
-    ax.plot([datetime.fromtimestamp(t[0]) for t in data[0][1]], [t[1] for t in data[0][1]], color='#cab7ff')
-    if len(data) > 1:
-        ax.plot([datetime.fromtimestamp(t[0]) for t in data[1][1]], [t[1] for t in data[1][1]], color='#9900bb')
+    # ax.plot([datetime.fromtimestamp(t[0]) for t in data[0][1]], [t[1] for t in data[0][1]], color='#cab7ff')
+    # if len(data) > 1:
+    #     ax.plot([datetime.fromtimestamp(t[0]) for t in data[1][1]], [t[1] for t in data[1][1]], color='#9900bb')
 
     # Format the x axis.
     legends = []
-
+    i = 0
     for t, color in zip(data, ['#cab7ff', '#9900bb']):
         legends.append(t[0].name)
-        ax.plot([datetime.fromtimestamp(t[0]) for t in data[0][1]], [t[1] for t in data[0][1]], color=color)
+        ax.plot([datetime.fromtimestamp(t[0]) for t in data[i][1]], [t[1] for t in data[i][1]], color=color)
+        i += 1
 
     ax.legend(legends)
 
