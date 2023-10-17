@@ -141,15 +141,15 @@ class Levels(commands.Cog):
                     '''
             await self.bot.db.execute(query, user_id, total_xp, total_xp) 
 
-    async def cog_unload(self):
-        await self.dump_xp()
-        for user_id, count in self.msg_counts.items():
-            query = '''INSERT INTO msg_count (user_id, count) 
-                        VALUES (?, ?)
-                        ON CONFLICT (user_id)
-                        DO UPDATE SET count = ? 
-                    '''
-            await self.bot.db.execute(query, user_id, count, count)
+    # async def cog_unload(self):
+    #     await self.dump_xp()
+    #     for user_id, count in self.msg_counts.items():
+    #         query = '''INSERT INTO msg_count (user_id, count) 
+    #                     VALUES (?, ?)
+    #                     ON CONFLICT (user_id)
+    #                     DO UPDATE SET count = ? 
+    #                 '''
+    #         await self.bot.db.execute(query, user_id, count, count)
     
     async def freeze_lb(self):
         await self.bot.db.execute('DROP TABLE IF EXISTS xp_copy')
@@ -202,6 +202,14 @@ class Levels(commands.Cog):
             return
         if message.channel.id not in self.blacklisted_channels and not message.author.bot:
             self.msg_counts[message.author.id] = self.msg_counts.get(message.author.id, 0) + 1
+            count = self.msg_counts[message.author.id]
+
+            query = '''INSERT INTO msg_count (user_id, count) 
+                        VALUES (?, ?)
+                        ON CONFLICT (user_id)
+                        DO UPDATE SET count = ? 
+                    '''
+            await self.bot.db.execute(query, message.author.id, count, count)
 
             if message.author.id not in self.xp_cooldowns or self.xp_cooldowns[message.author.id] < time.time():
                 authorroles = [role.id for role in message.author.roles]
@@ -218,6 +226,14 @@ class Levels(commands.Cog):
                 else:
                     self.xp_cache[message.author.id] += increment
                     new = old + increment 
+
+                query = '''INSERT INTO xp (user_id, "total_xp") 
+                            VALUES (?, ?)
+                            ON CONFLICT (user_id)
+                            DO UPDATE SET total_xp = ? 
+                        '''
+                await self.bot.db.execute(query, message.author.id, new, new) 
+
                 new_level, old_level = get_level(new), get_level(old)
                 await self.add_leveled_roles(message, old_level, new_level, authorroles)
 

@@ -2,12 +2,13 @@ import asqlite
 
 
 class DB:
-    def __init__(self, bot):
+    def __init__(self, bot, name):
         self.bot = bot 
+        self.name = name
         self.pool = None 
 
     async def connect(self):
-        self.pool = await asqlite.create_pool('main.sqlite')
+        self.pool = await asqlite.create_pool(self.name)
 
     async def execute(self, query, *args):
         async with self.pool.acquire() as conn:
@@ -38,5 +39,5 @@ class DB:
 
 
 async def setup(bot):
-    bot.db = DB(bot)
+    bot.db = DB(bot, 'main.sqlite')
     await bot.db.connect()
