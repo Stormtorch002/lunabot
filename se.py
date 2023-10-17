@@ -523,7 +523,9 @@ class ServerEvent(commands.Cog):
             ls = LunaScript.from_layout(channel, layout)
             await ls.reply(msg)
             return
-        
+
+        await msg.delete()
+
         if emojis[str(reaction.emoji)] == choices.index(a):
             if not steal:
                 await player.add_points(points, 'trivia')
