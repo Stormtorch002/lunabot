@@ -58,8 +58,10 @@ def generate_rank_card(level, av_file, percent):
     draw.rounded_rectangle([(0, 0), pbar_crop.size], fill=255, radius=15)
     new = Image.new(mode='RGBA', size=pbar_crop.size, color=0)
     new.paste(pbar_crop, (0, 0), mask)
-    new = new.resize((round(PBAR_FULL_SIZE[0]*percent), PBAR_FULL_SIZE[1]))
-    layer.paste(new, PBAR_CORNER, new)
+    xsize = round(PBAR_FULL_SIZE[0]*percent)
+    if xsize > 0:
+        new = new.resize((round(PBAR_FULL_SIZE[0]*percent), PBAR_FULL_SIZE[1]))
+        layer.paste(new, PBAR_CORNER, new)
     
     f1 = frame1.copy()
     f2 = frame2.copy()

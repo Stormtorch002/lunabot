@@ -54,7 +54,8 @@ class Levels(commands.Cog):
             1106805666997358623,
             1106805702619578518 ,
             1106819476093149274,
-            899513989061554257
+            899513989061554257,
+            901687732819091487,
         ]
         self.xp_multipliers = {
             913086743035658292: 1.2,
@@ -258,7 +259,6 @@ class Levels(commands.Cog):
             full = get_xp(current_level+1)
             pc = (mx - empty) / (full - empty)
 
-            nlr = nl = None
             av_file = BytesIO()
             await m.display_avatar.with_format('png').save(av_file)
 
