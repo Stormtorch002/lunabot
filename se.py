@@ -529,13 +529,13 @@ class ServerEvent(commands.Cog):
         if emojis[str(reaction.emoji)] == choices.index(a):
             if not steal:
                 await player.add_points(points, 'trivia')
-                await channel.send(f'You got the answer right! You earned **{points}** points.')
+                await channel.send(f'You got the answer right! {player.nick} earned **{points}** points.')
             else:
                 await player.team.opp.captain.remove_points(points, 'steal_trivia')
                 await player.add_points(points, 'trivia')
-                await channel.send(f'You got the answer right! You stole **{points}** points from the other team.')
+                await channel.send(f'You got the answer right! {player.nick} stole **{points}** points from the other team.')
         else:
-            await channel.send(f'You got the answer wrong! The correct answer was **{a}**.')
+            await channel.send(f'{player.nick} got the answer wrong! The correct answer was **{a}**.')
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
