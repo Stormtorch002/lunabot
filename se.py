@@ -238,10 +238,9 @@ class Player:
         if time.time() < self.next_msg:
             return 
         self.next_msg = time.time() + self.cd 
-        await asyncio.sleep(0.5)
         await self.add_points(1, 'msg')
     
-    async def on_welc(self):
+    async def on_welc(self, channel):
         if time.time() < self.next_welc:
             return
         self.next_welc = time.time() + WELC_CD 
@@ -253,8 +252,10 @@ class Player:
             'eventnick': self.nick,
             'teamname': self.team.name.capitalize(),
         }
-        ls = LunaScript.from_layout(self.member, layout, args=args)
-        await ls.send()
+        ls = LunaScript.from_layout(channel, layout, args=args)
+        msg = await ls.send()
+        await asyncio.sleep(10)
+        await msg.delete()
 
     async def log_msg(self):
         self.msg_count += 1
@@ -262,7 +263,7 @@ class Player:
         # query = 'update se_stats set msgs = msgs + 1 where user_id = ?'
         # await self.bot.db.execute(query, self.member.id)
         query = 'insert into se_log (team, user_id, type, gain, time) values (?, ?, ?, ?, ?)'
-        await self.bot.db.execute(query, self.team.name, self.member.id, 'msg', 1, int(time.time()))
+        await self.bot.db.execute(query, self.team.name, self.member.id, 'all_msg', 1, int(time.time()))
 
     async def add_points(self, points, reason, multi=True):
         if multi:
@@ -394,7 +395,7 @@ class ServerEvent(commands.Cog):
             816483116067192863: 'Seabass',
             950526903926816769: 'Lay',
             1132364499513524234: 'Ada',
-            785037540155195424: 'Fwogiie',
+            78503754010155195424: 'Fwogiie',
             920605346920271893: 'Dremis'
         }
 
@@ -431,11 +432,11 @@ class ServerEvent(commands.Cog):
                         powerups.append(CooldownReducer(row['value'], row['start_time'], row['end_time']))
 
                 query = 'select sum(gain) from se_log where type not in (?, ?, ?) and user_id = ?' 
-                points = await self.bot.db.fetchval(query, 'msg', 'cd_powerup', 'multi_powerup', member.id)
+                points = await self.bot.db.fetchval(query, 'all_msg', 'cd_powerup', 'multi_powerup', member.id)
                 if points is None:
                     points = 0
                 query = 'select sum(gain) from se_log where type = ? and user_id = ?' 
-                msgs = await self.bot.db.fetchval(query, 'msg', member.id)
+                msgs = await self.bot.db.fetchval(query, 'all_msg', member.id)
                 if msgs is None:
                     msgs = 0 
 
@@ -525,8 +526,6 @@ class ServerEvent(commands.Cog):
             await ls.reply(msg)
             return
 
-        await msg.delete()
-
         if emojis[str(reaction.emoji)] == choices.index(a):
             if not steal:
                 await player.add_points(points, 'trivia')
@@ -536,7 +535,10 @@ class ServerEvent(commands.Cog):
                 await player.add_points(points, 'trivia')
                 await channel.send(f'You got the answer right! {player.nick} stole **{points}** points from the other team.')
         else:
-            await channel.send(f'{player.nick} got the answer wrong! The correct answer was **{a}**.')
+            await channel.send(f'{player.nick} got the answer wrong! The correct answer was **{a}**.', delete_after=10)
+
+        await asyncio.sleep(10)
+        await msg.delete()
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -569,7 +571,7 @@ class ServerEvent(commands.Cog):
 
         if msg.author.id not in self.has_welcomed:
             if msg.content.lower().startswith('welc'):
-                await player.on_welc()
+                await player.on_welc(msg.channel)
 
         self.msg_counter += 1
         if self.msg_counter >= self.msgs_needed:
@@ -833,7 +835,7 @@ class ServerEvent(commands.Cog):
             rows_list = []
             for team in teams:
                 query = 'select time, gain from se_log where team = ? and type = ? and time < ? order by time asc'
-                rows = await self.bot.db.fetch(query, team.name, 'msg', int(end.timestamp()))
+                rows = await self.bot.db.fetch(query, team.name, 'all_msg', int(end.timestamp()))
                 rows_list.append((team, rows))
             data = data_from_rows(rows_list)
             file = await plot_data(self.bot, data)
@@ -858,8 +860,8 @@ class ServerEvent(commands.Cog):
         elif flags.stat in {'points', 'pts'}:
             rows_list = []
             for team in teams:
-                query = 'select gain, time from se_log where team = ? and type != ? and time < ?'
-                rows = await self.bot.db.fetch(query, team.name, 'msg', int(end.timestamp()))
+                query = 'select gain, time from se_log where team = ? and type not in (?, ?, ?) and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, 'all_msg', 'cd_powerup', 'multi_powerup', int(end.timestamp()))
                 rows_list.append((team, rows))
             data = data_from_rows(rows_list)
             file = await plot_data(self.bot, data)
