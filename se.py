@@ -238,6 +238,7 @@ class Player:
         if time.time() < self.next_msg:
             return 
         self.next_msg = time.time() + self.cd 
+        await asyncio.sleep(0.5)
         await self.add_points(1, 'msg')
     
     async def on_welc(self):
