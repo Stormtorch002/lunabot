@@ -304,6 +304,7 @@ class ServerEvent(commands.Cog):
         self.general_id = 899108709903532032
         self.channel_ids = {1158930467337293905, 1158931468664446986, self.general_id}
         self.msgs_needed = random.randint(15, 35)
+        self.db = None
 
         # comment out later
         # self.msgs_needed = 3
@@ -345,6 +346,11 @@ class ServerEvent(commands.Cog):
             return 4
 
     async def cog_load(self):
+        # from db import DB
+        
+        # db = DB(self.bot, 'se.sqlite')
+        # await db.connect()
+        # self.db = db 
 
         playerdict = {
             'bunny': [
