@@ -373,7 +373,7 @@ class ServerEvent(commands.Cog):
                 1059048815245668403,
                 1132364499513524234,
                 785037540155195424,
-                920605346920271893
+                718475543061987329
             ] 
         }
         channels = {
@@ -396,7 +396,7 @@ class ServerEvent(commands.Cog):
             950526903926816769: 'Lay',
             1132364499513524234: 'Ada',
             785037540155195424: 'Fwogiie',
-            920605346920271893: 'Dremis'
+            718475543061987329: 'Storch'
         }
 
         # for team, members in playerdict.items():
