@@ -575,6 +575,7 @@ class ServerEvent(commands.Cog):
 
         if msg.author.id not in self.has_welcomed:
             if msg.content.lower().startswith('welc'):
+                self.has_welcomed.add(msg.author.id)
                 await player.on_welc(msg.channel)
 
         self.msg_counter += 1
