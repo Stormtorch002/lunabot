@@ -46,8 +46,13 @@ def plot_data_sync(data):
     # Format the x axis.
     legends = []
     i = 0
-    for t, color in zip(data, ['#cab7ff', '#9900bb']):
+    colors = {
+        'bunny': '#cab7ff',
+        'kitty': '#9900bb'
+    }
+    for t in data:
         legends.append(t[0].name)
+        color = colors[t[0].name]
         ax.plot([datetime.fromtimestamp(t[0]) for t in data[i][1]], [t[1] for t in data[i][1]], color=color)
         i += 1
 
