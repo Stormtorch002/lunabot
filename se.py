@@ -213,10 +213,12 @@ class Player:
             self.multi *= powerup.n
             await asyncio.sleep(powerup.end - time.time())
             self.multi //= powerup.n 
+            self.powerups.remove(powerup)
         elif isinstance(powerup, CooldownReducer):
             self.cds.append(powerup.n)
             await asyncio.sleep(powerup.end - time.time())
             self.cds.remove(powerup.n)
+            self.powerups.remove(powerup)
 
     async def log_powerup(self, name):
         query = 'insert into se_log (team, user_id, type, gain, time) values (?, ?, ?, ?, ?)'
@@ -767,6 +769,32 @@ class ServerEvent(commands.Cog):
         embed.description = '\n'.join(pointlst)
         await ctx.send(embed=embed)
 
+    @commands.command(alises=['effects'])
+    async def powerups(self, ctx, *, member: discord.Member = None):
+        if member is None:
+            member = ctx.author
+
+        embed = discord.Embed(title='Active Powerups', color=0xcab7ff)
+        for team in self.teams:
+            poweruplst = []
+            for player in self.teams[team].players:
+                lst2 = [] 
+                if len(player.powerups) == 0:
+                    continue 
+                for powerup in player.powerups:
+                    end = discord.utils.format_dt(datetime.datetime.fromtimestamp(powerup.end), 'R')
+                    if powerup.name == 'Multiplier':
+                        lst2.append(f'{powerup.n}x multiplier, ends {end}')
+                    else:
+                        mins = round((powerup.end - time.time()) / 60)
+                        lst2.append(f'{mins} min message CD, ends {end}')
+                lst2 = '\n'.join(lst2)
+                poweruplst.append(f'**{player.nick}**\n{lst2}')
+            if len(poweruplst) == 0:
+                continue 
+            embed.add_field(name=f'Team {team.capitalize()}', value='\n\n'.join(poweruplst))
+        await ctx.send(embed=embed)
+    
     @commands.command()
     async def teamstats(self, ctx, *, flags: TeamStatsFlags):
         if flags.stat.lower() not in {
