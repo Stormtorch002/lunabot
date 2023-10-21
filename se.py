@@ -332,6 +332,15 @@ class ServerEvent(commands.Cog):
             'Double Point Multiplier',
             'Triple Point Multiplier'
         ]
+        self.non_point_types = [
+            'all_msg',
+            'multi_powerup',
+            'cd_powerup',
+            '1k',
+            'trivia_powerup',
+            'steal_powerup',
+            'topup_powerup'
+        ]
     
     def generate_powerup(self):
         # comment out later 
@@ -437,8 +446,9 @@ class ServerEvent(commands.Cog):
                     elif row['name'] == 'Cooldown Reducer':
                         powerups.append(CooldownReducer(row['value'], row['start_time'], row['end_time']))
 
-                query = 'select sum(gain) from se_log where type not in (?, ?, ?) and user_id = ?' 
-                points = await self.bot.db.fetchval(query, 'all_msg', 'cd_powerup', 'multi_powerup', member.id)
+                placeholders = ','.join('?' for _ in self.non_point_types)
+                query = f'select sum(gain) from se_log where type not in ({placeholders}) and user_id = ?' 
+                points = await self.bot.db.fetchval(query, *self.non_point_types, member.id)
                 if points is None:
                     points = 0
                 query = 'select sum(gain) from se_log where type = ? and user_id = ?' 
@@ -893,8 +903,9 @@ class ServerEvent(commands.Cog):
         elif flags.stat in {'points', 'pts'}:
             rows_list = []
             for team in teams:
-                query = 'select gain, time from se_log where team = ? and type not in (?, ?, ?) and time < ?'
-                rows = await self.bot.db.fetch(query, team.name, 'all_msg', 'cd_powerup', 'multi_powerup', int(end.timestamp()))
+                placeholders = ','.join('?' for _ in self.non_point_types)
+                query = f'select gain, time from se_log where team = ? and type not in ({placeholders}) and time < ?'
+                rows = await self.bot.db.fetch(query, team.name, *self.non_point_types, int(end.timestamp()))
                 rows_list.append((team, rows))
             data = data_from_rows(rows_list)
             file = await plot_data(self.bot, data)
@@ -922,7 +933,7 @@ class ServerEvent(commands.Cog):
                 'steal_powerup',
                 'trivia_powerup',
                 'multi_powerup',
-                'cd_powerup'
+                'cd_powerup',
             ]
             placeholders = ','.join(['?']*len(types))
             stats = {}
