@@ -322,7 +322,7 @@ questions = [
     ("Who made these Luna emotes?? <:LC_Luna_woah_YumBun_NF2U:1118227655116988426> <:LC_Luna_peek_YumBun_NF2U:1118292331192393738> <:LC_Luna_rich_YumBun_NF2U:1118392831317385248>", "YumBun", notyumbum),
     ("What was the first thing Luna did when she created the server??", "Spam ping Nemi with the sticker welcome", firstthing),
     ("When did Josh first join Lumi Corp??", "11/14/21", josh),
-    ("Who is the mod who has been with us the longest??", "Soy Sauce"),
+    ("Who is the mod who has been with us the longest??", "Soy Sauce", longestmod),
     ("Why did Fwogiie get admin??", "Luna gave her the role so she could try to get the December 2021 server icon to upload", fwoggieadmin),
     ("Who made the server icon for December 2021?? Hint: it's the very first pinned message in chat", "Fwogiie", dec2021icon),
     ("Who was Paris??" ,"An ex mod from 2021", paris),
