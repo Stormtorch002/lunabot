@@ -1,6 +1,8 @@
 from discord.ext import commands 
+import csv 
 import asyncio
 import json 
+from io import StringIO
 from discord import ui 
 from discord.utils import escape_markdown
 from embed_editor.editor import EmbedEditor
@@ -29,6 +31,25 @@ class Tools(commands.Cog, description='storchs tools'):
 
     async def cog_check(self, ctx):
         return ctx.author.guild_permissions.administrator or ctx.author.id == self.bot.owner_id
+
+    @commands.command()
+    async def sql(self, ctx, *, query):
+        if query.lower().startswith('select'):
+            rows = await self.bot.db.fetch(query)
+            if not rows:
+                await ctx.send('No results.')
+                return
+            buf = StringIO()
+            writer = csv.writer(buf)
+            writer.writerow(rows[0].keys())
+            for row in rows:
+                row = dict(row)
+                writer.writerow(row.values())
+            buf.seek(0)
+            await ctx.send(file=discord.File(buf, filename='query.csv'))
+        else:
+            status = await self.bot.db.execute(query)
+            await ctx.send(f'Done! ```sql\n{status}```')
 
     @commands.command()
     async def buildembed(self, ctx):

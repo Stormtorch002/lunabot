@@ -25,6 +25,7 @@ class Levels(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.xp_cooldowns = {}
+        self.main_guild_id = 899108709450543115
         self.leveled_roles = {
             1: 938858105473740840,
             5: 923096157645852693,
@@ -69,7 +70,7 @@ class Levels(commands.Cog):
 
     # make a loop that runs every sunday at 1am 
     async def weekly_xp(self):
-        await self.dump_xp()
+        # await self.dump_xp()
         query = '''SELECT xp.user_id, (xp.total_xp - xp_copy.total_xp) AS diff
                     FROM xp
                     INNER JOIN xp_copy ON xp.user_id = xp_copy.user_id
@@ -114,15 +115,28 @@ class Levels(commands.Cog):
     @weekly_xp_task.before_loop
     async def before_weekly_xp(self):
         # sleep until next sunday at 1am
-        now = datetime.datetime.now().astimezone(ZoneInfo('US/Eastern'))
-        if now.hour == 0:
-            target = now.replace(hour=1, minute=0, second=0, microsecond=0)
-        else:
-            target = now.replace(hour=1, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
-        while target.weekday() != 6:
-            target += datetime.timedelta(days=1)
-        print(target)
-        await discord.utils.sleep_until(target)
+        now = datetime.now(ZoneInfo('US/Eastern'))
+
+        # Calculate days to add to get the next Sunday
+        # Sunday is 6 in Python's weekday(), where Monday is 0
+        days_to_add = (6 - now.weekday()) % 7
+        if days_to_add == 0 and now.hour >= 1:
+            # If today is Sunday and it's past 1 AM, move to next Sunday
+            days_to_add = 7
+
+        # Calculate the datetime for next Sunday at 1 AM
+        next_sunday_1am = now.replace(hour=1, minute=0, second=0, microsecond=0) + datetime.timedelta(days=days_to_add)
+        await discord.utils.sleep_until(next_sunday_1am)
+
+        # now = datetime.datetime.now().astimezone(ZoneInfo('US/Eastern'))
+        # if now.hour == 0:
+        #     target = now.replace(hour=1, minute=0, second=0, microsecond=0)
+        # else:
+        #     target = now.replace(hour=1, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
+        # while target.weekday() != 6:
+        #     target += datetime.timedelta(days=1)
+        # print(target)
+        # await discord.utils.sleep_until(target)
 
     async def cog_load(self):
         query = 'select user_id, total_xp from xp'
@@ -142,6 +156,8 @@ class Levels(commands.Cog):
                     '''
             await self.bot.db.execute(query, user_id, total_xp, total_xp) 
 
+    async def cog_unload(self):
+        self.weekly_xp_task.cancel()
     # async def cog_unload(self):
     #     await self.dump_xp()
     #     for user_id, count in self.msg_counts.items():
@@ -201,6 +217,9 @@ class Levels(commands.Cog):
     async def on_message(self, message):
         if not message.guild:
             return
+        if message.guild.id != self.main_guild_id:
+            return 
+
         if message.channel.id not in self.blacklisted_channels and not message.author.bot:
             self.msg_counts[message.author.id] = self.msg_counts.get(message.author.id, 0) + 1
             count = self.msg_counts[message.author.id]

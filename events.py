@@ -15,6 +15,7 @@ from discord import app_commands
 BOOSTER_ROLE_ID = 913086743035658292
 # BOOSTER_ROLE_ID = 953441647507673088
 FREE_OFFERS_CHANNEL_ID = 1127014412432183347
+VOID_CHANNEL_ID = 964728745451728946
 
 
 class Events(commands.Cog, description='Manage join, leave, boost, and birthday messages'):
@@ -92,6 +93,8 @@ class Events(commands.Cog, description='Manage join, leave, boost, and birthday 
     async def on_message(self, message):
         if message.channel.id == FREE_OFFERS_CHANNEL_ID:
             await message.add_reaction('<a:LCM_mail:1151561338317983966>')
+        if message.channel.id == VOID_CHANNEL_ID:
+            await message.delete()
 
     @commands.Cog.listener()
     async def on_member_join(self, member):

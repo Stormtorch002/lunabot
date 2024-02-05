@@ -112,7 +112,7 @@ class Automessages(commands.Cog):
         else:
             embed = None 
 
-        taskobj = self.bot.loop.create_task(task(channel, text, embed, time, 0))
+        taskobj = self.bot.loop.create_task(task(self.bot, channel, text, embed, time, 0, name))
         self.tasks[name] = taskobj 
         # msg = await channel.send(None, embed=realembed)
         await ctx.send(f'Made your automessage! See it in {channel.mention}')

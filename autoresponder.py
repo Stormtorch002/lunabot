@@ -1,14 +1,32 @@
 from discord.ext import commands 
-from utils.views import RoboPages, AutoSource
 from discord import ui
-from discord.interactions import Interaction
-from embed_editor.editor import EmbedEditor
 import discord 
 import json 
 import asyncio 
 import re 
 from lunascript import LunaScript
 
+
+class AllowDenyView(ui.View):
+    def __init__(self):
+        super().__init__()
+        self.ready = False 
+        self.choice = None
+        self.inter = None  
+
+    async def interaction_check(self, interaction):
+        if interaction.user.id == self.ctx.author.id:
+            return True 
+        else:
+            await interaction.response.defer()
+            return False 
+
+    @ui.select(options=[discord.SelectOption(label=gg) for gg in ['channel', 'role', 'user']])        
+    async def allowtype(self, inter, sel):
+        self.choice = sel.values[0]
+        self.inter = inter 
+        self.ready = True 
+        self.stop() 
 
 class RoleView(ui.View):
 
@@ -35,24 +53,44 @@ class RoleView(ui.View):
 
 class AutoResponder:
 
-    def __init__(self, phrase, detection, guilds, wlusers, blusers, wlroles, blroles, wlchannels, blchannels, text, embed, autoemojis, give_roles=None, remove_roles=None, delete_trigger=None, delete_response_after=None):
+    def __init__(self, phrase, data):
         self.phrase = phrase 
-        self.detection = detection 
+        self.data = data
 
-        self.guilds = json.loads(guilds) if guilds else []
-        self.wlusers = json.loads(wlusers) if wlusers else []
-        self.blusers = json.loads(blusers) if blusers else []
-        self.wlroles = json.loads(wlroles) if wlroles else []
-        self.blroles = json.loads(blroles) if blroles else []
-        self.wlchannels = json.loads(wlchannels) if wlchannels else []
-        self.blchannels = json.loads(blchannels) if blchannels else []
-        self.text = text
-        self.embed = embed 
-        self.autoemojis = json.loads(autoemojis) if autoemojis else []
-        self.give_roles = json.loads(give_roles) if give_roles else []
-        self.remove_roles = json.loads(remove_roles) if remove_roles else []
-        self.delete_trigger = delete_trigger if delete_trigger else False
-        self.delete_response_after = delete_response_after
+        self.detection = self.data["detection"]
+        self.guilds = self.data.get("guilds", '[]')
+
+        # whitelists/blacklists
+        self.wlusers = self.data.get("wlusers", [])
+        self.blusers = self.data.get("blusers", [])
+        self.wlroles = self.data.get("wlroles", [])
+        self.blroles = self.data.get("blroles", [])
+        self.wlchannels = self.data.get("wlchannels", [])
+        self.blchannels = self.data.get("blchannels", [])
+
+        # responding
+        self.text = self.data.get("text", None)
+        self.embed = self.data.get("embed", None)
+        self.autoemojis = self.data.get("autoemojis", [])
+        self.give_roles = self.data.get("give_roles", [])
+        self.remove_roles = self.data.get("remove_roles", [])
+        self.delete_trigger = self.data.get("delete_trigger", False)
+        self.delete_response_after = self.data.get("delete_response_after", None)
+
+        # cooldowns 
+        self.guild_cooldown = self.data.get("guild_cooldown", None)
+        self.channel_cooldown = self.data.get("channel_cooldown", None) 
+        self.user_cooldown = self.data.get("user_cooldown", None)
+        
+        if self.guild_cooldown is not None:
+            self.guild_cooldown = commands.CooldownMapping.from_cooldown(1, self.guild_cooldown, commands.BucketType.guild)
+            # self.guild_cooldown = commands.Cooldown(1, self.guild_cooldown)
+        if self.channel_cooldown is not None:
+            self.channel_cooldown = commands.CooldownMapping.from_cooldown(1, self.channel_cooldown, commands.BucketType.channel)
+            # self.channel_cooldown = commands.Cooldown(1, self.channel_cooldown)
+        if self.user_cooldown is not None:
+            self.user_cooldown = commands.CooldownMapping.from_cooldown(1, self.user_cooldown, commands.BucketType.user)
+            # self.user_cooldown = commands.Cooldown(1, self.user_cooldown)
     
     def __eq__(self, other):
         return self.phrase == other.phrase
@@ -64,16 +102,16 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         self.ars = []
     
     async def cog_load(self):
-        async with self.bot.pool.acquire() as conn:
-            async with conn.cursor() as cur:
-                query = 'SELECT * FROM ars'
-                await cur.execute(query)
-                rows = await cur.fetchall()
+        query = 'SELECT * FROM ars'
+        rows = await self.bot.db.fetch(query)
+        for row in rows:
+            data = json.loads(row["data"])
+            self.ars.append(
+                AutoResponder(row['phrase'], data)
+            )
 
-                for row in rows:
-                    self.ars.append(
-                        AutoResponder(*[row[i] for i in range(1, 17)])
-                    )
+    async def cog_unload(self):
+        self.ars = []
 
     async def cog_check(self, ctx):
         return ctx.author.guild_permissions.administrator or await self.bot.is_owner(ctx.author)
@@ -83,7 +121,6 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         if msg.author.bot: 
             return 
         
-        roleids = [r.id for r in msg.author.roles]
         for ar in self.ars:
             if msg.guild.id not in ar.guilds:
                 continue 
@@ -91,14 +128,35 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 continue 
             if ar.blusers and msg.author.id in ar.blusers:
                 continue 
-            if ar.wlroles and all(role not in roleids for role in ar.roles):
+            roleids = [r.id for r in msg.author.roles]
+            if ar.wlroles and all(role not in roleids for role in ar.wlroles):
                 continue 
-            if ar.blroles and any(role in roleids for role in ar.roles):
+            if ar.blroles and any(role in roleids for role in ar.blroles):
                 continue 
             if ar.wlchannels and msg.channel.id not in ar.wlchannels:
                 continue 
             if ar.blchannels and msg.channel.id in ar.blchannels:
                 continue 
+            
+            cds = [ar.guild_cooldown, ar.channel_cooldown, ar.user_cooldown]
+            on_cd = False
+            for cd in cds:
+                # print(cd, type(cd))
+                if cd is None:
+                    continue
+
+                bucket = cd.get_bucket(msg)
+                retry_after = bucket.update_rate_limit()
+                if retry_after:
+                    #print(f'guild cooldown for {ar.phrase} in {msg.guild.name}')
+                    on_cd = True
+                    continue 
+
+                if on_cd:
+                    break
+            
+            if on_cd:
+                continue
             
             content = msg.content.lower()
             args = None 
@@ -130,6 +188,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                     embed = None
 
                 # await msg.channel.send(ar.text, embed=embed, delete_after=ar.delete_response_after)
+                # print(ar.text, embed)
                 ls = LunaScript(await self.bot.get_context(msg), ar.text, embed, args=args)
                 await ls.send()
             
@@ -211,7 +270,6 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             return 
         guild_ids = [int(guild_id) for guild_id in guild_ids]
         
-
         # make a view for user to select either message responder or autoreaction
         class View(ui.View):
                 
@@ -283,25 +341,28 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                         return await ctx.send('No embed with that name found.')
                     embed_name = val 
 
-            self.ars.append(
-                AutoResponder(phrase.lower(), choice, json.dumps(guild_ids), '[]', '[]', '[]', '[]', '[]', '[]', text, embed_name, [])
-            )
-            async with self.bot.pool.acquire() as conn:
-                query = '''INSERT INTO ars (phrase, detection, guilds, message, embed)
-                            VALUES (?, ?, ?, ?, ?)'''
-                await conn.execute(query, (phrase.lower(), choice, json.dumps(guild_ids), text, embed_name))
-                await conn.commit()
+            query = '''INSERT INTO ars (phrase, data) VALUES (?, ?)'''
+            data = {
+                "detection": choice,
+                "guilds": guild_ids,
+                "text": text,
+                "embed": embed_name,
+            }
+            await self.bot.db.execute(query, phrase.lower(), json.dumps(data))
+            self.ars.append(AutoResponder(phrase.lower(), data))
         else:
             emojis = await self.getemojis(ctx, view2.inter)
             if not emojis:
                 return await ctx.send('Please provide at least one valid emoji, autoresponder cancelled.')
 
-            query = 'INSERT INTO ars (phrase, detection, guilds, emojis) VALUES (?, ?, ?, ?)'
-
-            self.ars.append(
-                AutoResponder(phrase.lower(), choice, json.dumps(guild_ids), '[]', '[]', '[]', '[]', '[]', '[]', None, None, emojis)
-            )
-            await self.bot.db.execute(query, phrase.lower(), choice, json.dumps(guild_ids), emojis)
+            query = 'INSERT INTO ars (phrase, data) VALUES (?, ?)'  
+            data = {
+                "detection": choice,
+                "guilds": guild_ids,
+                "autoemojis": emojis,
+            }
+            await self.bot.db.execute(query, phrase.lower(), json.dumps(data))
+            self.ars.append(AutoResponder(phrase.lower(), data))
             
         await ctx.send('Successfully made autoresponder!')
 
@@ -311,12 +372,81 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         for ar in self.ars:
             if ar.phrase == phrase.lower():
                 self.ars.remove(ar)
-                async with self.bot.pool.acquire() as conn:
-                    query = '''DELETE FROM ars WHERE phrase = ?'''
-                    await conn.execute(query, (phrase.lower(),))
-                    await conn.commit()
+                query = '''DELETE FROM ars WHERE phrase = ?'''
+                await self.bot.db.execute(query, phrase.lower())
                 return await ctx.send('Successfully removed autoresponder.')
+
         await ctx.send('No autoresponder with that name.')
+
+    async def edit_cd(self, inter, ar):
+        class View(ui.View):
+
+            def __init__(self):
+                super().__init__()
+                self.ready = False 
+                self.choice = None
+                self.inter = None  
+
+            async def interaction_check(self, interaction):
+                return interaction.user == inter.user 
+
+            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['guild', 'channel', 'user']])        
+            async def allowtype(self, inter, sel):
+                self.choice = sel.values[0]
+                self.inter = inter 
+                self.ready = True 
+                self.stop() 
+        
+        view = View()
+        msg = await inter.response.send_message('What cooldown would you like to edit?', view=view)
+        await view.wait()
+        if not view.ready:
+            await msg.delete()
+            return 
+        
+        await view.inter.response.send_message('Please enter the new cooldown in seconds. 0 means no cooldown.')
+
+        def check(m):
+            return m.author == inter.user and m.channel == inter.channel
+        
+        try:
+            msg = await self.bot.wait_for('message', check=check, timeout=180)
+        except asyncio.TimeoutError:
+            return await inter.response.edit_message(content='You took too long to respond.', view=None)
+        
+        if not msg.content.isdigit():
+            return await inter.response.edit_message(content='Please enter a valid number.', view=None)
+
+        cd = int(msg.content)
+
+        if cd == 0:
+            cd = None
+
+        if view.choice == 'guild':
+            if cd is None:
+                ar.guild_cooldown = None 
+                del ar.data['guild_cooldown']
+            else: 
+                ar.guild_cooldown = commands.CooldownMapping.from_cooldown(1, cd, commands.BucketType.guild)
+                ar.data['guild_cooldown'] = cd
+        elif view.choice == 'channel':
+            if cd is None:
+                ar.channel_cooldown = None 
+                del ar.data['channel_cooldown']
+            else:
+                ar.channel_cooldown = commands.CooldownMapping.from_cooldown(1, cd, commands.BucketType.channel)
+                ar.data['channel_cooldown'] = cd
+        else:
+            if cd is None:
+                ar.user_cooldown = None 
+                del ar.data['user_cooldown']
+            else:
+                ar.user_cooldown = commands.CooldownMapping.from_cooldown(1, cd, commands.BucketType.user)
+                ar.data['user_cooldown'] = cd
+        
+        query = 'UPDATE ars SET data = ? WHERE phrase = ?'
+        await self.bot.db.execute(query, json.dumps(ar.data), ar.phrase)
+        await msg.reply('Edited cooldown!', view=None)
 
     @commands.command()
     async def editar(self, ctx, *, phrase):
@@ -339,13 +469,12 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             async def interaction_check(self, interaction):
                 return interaction.user == ctx.author 
 
-            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['whitelist', 'blacklist', 'roles given', 'roles removed', 'trigger deletion', 'response deletion']])        
+            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['whitelist', 'blacklist', 'cooldown', 'roles given', 'roles removed', 'trigger deletion', 'response deletion']])        
             async def allowtype(self, inter, sel):
                 self.choice = sel.values[0]
                 self.inter = inter 
                 self.ready = True 
                 self.stop()
-
             
         view = View()
         msg = await ctx.send('What would you like to edit?', view=view)
@@ -355,9 +484,11 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             return
 
         if view.choice == 'whitelist':
-            await self.allowar(ctx, view.inter, phrase=phrase)
+            await self.allowar(view.inter, ar)
         elif view.choice == 'blacklist':
-            await self.denyar(ctx, view.inter, phrase=phrase)
+            await self.denyar(view.inter, ar)
+        elif view.choice == 'cooldown':
+            await self.edit_cd(view.inter, ar)
         elif view.choice == 'roles given':
             view2 = RoleView()
             await view.inter.response.edit_message(content='Please select all the roles to give (overrides old settings).', view=view2)
@@ -365,11 +496,10 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             if not view2.ready:
                 return 
             roleids = [r.id for r in view2.roles]
-            self.ars.remove(ar)
+            ar.data['give_roles'] = roleids
             ar.give_roles = roleids
-            self.ars.append(ar)
-            query = 'UPDATE ars SET give_roles = ? WHERE phrase = ?'
-            await self.bot.db.execute(query, json.dumps(roleids), phrase)
+            query = 'UPDATE ars SET data = ? WHERE phrase = ?'
+            await self.bot.db.execute(query, json.dumps(ar.data), phrase)
             await view2.inter.response.edit_message(content='Edited your autoresponder!', view=None)
         elif view.choice == 'roles removed':
             view2 = RoleView()
@@ -378,11 +508,10 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             if not view2.ready:
                 return 
             roleids = [r.id for r in view2.roles]
-            self.ars.remove(ar)
+            ar.data['remove_roles'] = roleids
             ar.remove_roles = roleids
-            self.ars.append(ar)
-            query = 'UPDATE ars SET remove_roles = ? WHERE phrase = ?'
-            await self.bot.db.execute(query, json.dumps(roleids), phrase)
+            query = 'UPDATE ars SET data = ? WHERE phrase = ?'
+            await self.bot.db.execute(query, json.dumps(ar.data), phrase)
             await view2.inter.response.edit_message(content='Edited your autoresponder!', view=None)
         elif view.choice == 'trigger deletion':
 
@@ -413,11 +542,10 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
             await view2.wait()
             if not view2.ready:
                 return 
-            self.ars.remove(ar)
-            ar.delete_trigger = view2.choice 
-            self.ars.append(ar)
-            query = 'UPDATE ars SET delete_trigger = ? WHERE phrase = ?'
-            await self.bot.db.execute(query, int(view2.choice), phrase)
+            ar.data['delete_trigger'] = view2.choice
+            ar.delete_trigger = view2.choice
+            query = 'UPDATE ars SET data = ? WHERE phrase = ?'
+            await self.bot.db.execute(query, json.dumps(ar.data), phrase)
             await view2.inter.response.edit_message(content='Edited your autoresponder!', view=None)
         elif view.choice == 'response deletion':
             def check(m):
@@ -442,15 +570,12 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
 
             if delay <= 0:
                 delay = None
-            self.ars.remove(ar)
-            ar.delete_response_after = delay 
-            self.ars.append(ar)
-            query = 'UPDATE ars SET delete_response_after = ? WHERE phrase = ?' 
-            await self.bot.db.execute(query, delay, phrase)
+            ar.delete_response_after = delay
+            ar.data['delete_response_after'] = delay
+            query = 'UPDATE ars SET data = ? WHERE phrase = ?'
+            await self.bot.db.execute(query, json.dumps(ar.data), phrase)
             await ctx.send('Edited your autoresponder!')
 
-
-            
     async def getemojis(self, ctx, inter):
         temp = await inter.response.send_message('Please send one or more emojis, separated by spaces.')
 
@@ -479,29 +604,9 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         
         emojis_json = json.dumps([str(emoji) for emoji in emojis])
         return emojis_json 
-
         
-    async def allowar(self, ctx, inter, phrase):
-
-        class View(ui.View):
-
-            def __init__(self):
-                super().__init__()
-                self.ready = False 
-                self.choice = None
-                self.inter = None  
-
-            async def interaction_check(self, interaction):
-                return interaction.user == ctx.author 
-
-            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['channel', 'role', 'user']])        
-            async def allowtype(self, inter, sel):
-                self.choice = sel.values[0]
-                self.inter = inter 
-                self.ready = True 
-                self.stop() 
-        
-        view = View()
+    async def allowar(self, inter, ar):
+        view = AllowDenyView()
         msg = await inter.response.send_message('What would you like to allow?', view=view)
         await view.wait()
         if not view.ready:
@@ -524,7 +629,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 self.choices = None 
 
             async def interaction_check(self, interaction):
-                return interaction.user == ctx.author 
+                return interaction.user == inter.user
 
             @ui.select(cls=c, min_values=0, max_values=25, channel_types=[discord.ChannelType.text])
             async def objselect(self, inter, sel):
@@ -545,55 +650,24 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         await view2.wait()
         if not view2.ready:
             return 
-        
-        for ar in self.ars:
-            if ar.phrase == phrase:
-                self.ars.remove(ar)
-                break 
-        temp = ar     
+
         ids = [o.id for o in view2.choices]
         if c is ui.ChannelSelect:
-            col = 'wlchannels'
-            temp.wlchannels = ids 
+            ar.data['wlchannels'] = ids
+            ar.wlchannels = ids
         elif c is ui.RoleSelect:
-            col = 'wlroles' 
-            temp.wlroles = ids 
+            ar.data['wlroles'] = ids
+            ar.wlroles = ids
         else:
-            col = 'wlusers'
-            temp.wlusers = ids
-        self.ars.append(temp) 
-        col2 = col.replace('w', 'b')
+            ar.data['wlusers'] = ids
+            ar.wlusers = ids
 
-        query = f'UPDATE ars SET {col} = ?, {col2} = ? WHERE phrase = ?'
-        await self.bot.db.execute(query, json.dumps(ids), '[]', phrase)
-         
+        query = 'UPDATE ars SET data = ? WHERE phrase = ?'
+        await self.bot.db.execute(query, json.dumps(ar.data), ar.phrase)
         await view2.inter.response.edit_message(view=None, content='Edited your autoresponder!')
 
-    async def denyar(self, ctx, inter, phrase):
-
-        class View(ui.View):
-
-            def __init__(self):
-                super().__init__()
-                self.ready = False 
-                self.choice = None
-                self.inter = None  
-
-            async def interaction_check(self, interaction):
-                if interaction.user.id == self.ctx.author.id:
-                    return True 
-                else:
-                    await interaction.response.defer()
-                    return False 
-
-            @ui.select(options=[discord.SelectOption(label=gg) for gg in ['channel', 'role', 'user']])        
-            async def allowtype(self, inter, sel):
-                self.choice = sel.values[0]
-                self.inter = inter 
-                self.ready = True 
-                self.stop() 
-        
-        view = View()
+    async def denyar(self, inter, ar):
+        view = AllowDenyView()
         msg = await inter.response.send_message('What would you like to allow?', view=view)
         await view.wait()
         if not view.ready:
@@ -616,7 +690,7 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
                 self.choices = None 
 
             async def interaction_check(self, interaction):
-                return interaction.user == ctx.author 
+                return interaction.user == inter.user 
 
             @ui.select(cls=c, max_values=25, channel_types=[discord.ChannelType.text])
             async def objselect(self, inter, sel):
@@ -630,28 +704,20 @@ class AutoResponderCog(commands.Cog, name='Autoresponders', description="Autores
         await view2.wait()
         if not view2.ready:
             return 
-        
-        for ar in self.ars:
-            if ar.phrase == phrase:
-                self.ars.remove(ar)
-                break 
-        temp = ar     
+
         ids = [o.id for o in view2.choices]
         if c is ui.ChannelSelect:
-            col = 'blchannels'
-            temp.blchannels = ids 
+            ar.data['blchannels'] = ids
+            ar.blchannels = ids
         elif c is ui.RoleSelect:
-            col = 'blroles' 
-            temp.blroles = ids 
+            ar.data['blroles'] = ids
+            ar.blroles = ids
         else:
-            col = 'blusers'
-            temp.blusers = ids
-        self.ars.append(temp) 
-        col2 = col.replace('b', 'w')
+            ar.data['blusers'] = ids
+            ar.blusers = ids
 
-        query = f'UPDATE ars SET {col} = ?, {col2} = ? WHERE phrase = ?'
-        await self.bot.db.execute(query, json.dumps(ids), '[]', phrase)
-         
+        query = 'UPDATE ars SET data = ? WHERE phrase = ?'
+        await self.bot.db.execute(query, json.dumps(ar.data), ar.phrase)
         await view2.inter.response.edit_message(view=None, content='Edited your autoresponder!')
      
     # @commands.command()

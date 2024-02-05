@@ -321,13 +321,13 @@ class FrontPageSource(menus.PageSource):
 > ⁺﹒And use the dropdown menu below to select a category of commands to view﹒⁺
                            ‧  ╴‧  ╴‧  ╴‧
 > ✿﹒*My home is this great server...*
-> <:LC_reply_F2U:1081275742765195355> https://discord.gg/lunaxnemi <a:Lumi_sparkles:899826759313293432> 
+> <:LC_reply_F2U:1081275742765195355> https://discord.gg/lunalilac <a:Lumi_sparkles:899826759313293432> 
                            ‧  ╴‧  ╴‧  ╴‧
 > ❀﹒*Wondering who I am??*
-> <:LC_reply_F2U:1081275742765195355> I'm the amazing mascot of all Lumi Corp servers, but in bot form! I was coded by the epic `stormtorch`; you may see him around the server sometimes, likely saying random things like "ur mom." If you ever experience any bugs or have any concerns regarding me, he is the one you need to contact.
+> <:LC_reply_F2U:1081275742765195355> I'm the amazing mascot of all Moonlit Lilacs, but in bot form! I was coded by the epic `stormtorch`; you may see him around the server sometimes, likely saying random things like "ur mom." If you ever experience any bugs or have any concerns regarding me, he is the one you need to contact.
                            ‧  ╴‧  ╴‧  ╴‧
 > <a:Lumi_purple_exclamation:899739130215411792> ﹒ ﹒ Here's a heads up ﹒ ﹒ <a:Lumi_purple_exclamation:899739130215411792>
-> <:LC_reply_F2U:1081275742765195355> You __cannot__ add me to your own servers! I am solely here to serve all of the Lumi Corp servers. Please do not ask, nor attempt to add me elsewhere.
+> <:LC_reply_F2U:1081275742765195355> You __cannot__ add me to your own servers! I am solely here to serve Moonlit Lilac servers. Please do not ask, nor attempt to add me elsewhere.
                            ‧  ╴‧  ╴‧  ╴‧"""
         embed.set_footer(text="⁺﹒This help command was borrowed from Danny's bot R. Danny﹒⁺")
         if self.index == 1:
